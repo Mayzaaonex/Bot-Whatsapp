@@ -1,153 +1,176 @@
-# WA Bot Base — @itsliaaa/baileys + Menu List Interaktif
+# Bot WhatsApp Multi-Device
 
-## ⚠️ Sebelum mulai — baca ini
+Bot WhatsApp berbasis Node.js + [`@itsliaaa/baileys`](https://github.com/itsliaaa/baileys) dengan menu interaktif (List / nativeFlow), downloader, sticker tools, AI, dan kontrol owner/whitelist grup.
 
-Project ini sekarang pakai **`@itsliaaa/baileys`**, sebuah fork komunitas
-(bukan library resmi WhiskeySockets/Baileys). Fork ini nambahin dukungan
-buat pesan interaktif (buttons, list, native flow) yang lebih rapi.
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Baileys](https://img.shields.io/badge/Baileys-community%20fork-blue)](https://github.com/itsliaaa/baileys)
+[![Version](https://img.shields.io/badge/version-1.2.2-orange)](./package.json)
+[![License](https://img.shields.io/badge/license-ISC-lightgrey)](#)
 
-Yang perlu kamu tau:
-- Ini tetap library **tidak resmi**, dibuat & di-maintain sendirian oleh
-  satu developer (bukan tim besar) — https://github.com/itsliaaa/baileys
-- Resiko: bisa berhenti di-update kapan aja, ada resiko supply-chain
-  (install kode dari sumber pihak ketiga), dan gak ada jaminan WA gak
-  akan nge-block fitur List ini juga suatu saat nanti.
-- Kalau nanti fitur List ini juga gak reliable, base menu teks/angka versi
-  sebelumnya (tanpa dependency tambahan) tetap jadi fallback paling aman.
+## Daftar Isi
+- [Fitur](#fitur)
+- [Persyaratan](#persyaratan)
+- [Instalasi & Menjalankan](#instalasi--menjalankan)
+- [Cara Pakai](#cara-pakai)
+- [Whitelist Grup](#whitelist-grup)
+- [Konfigurasi Owner](#konfigurasi-owner)
+- [Struktur Folder](#struktur-folder)
+- [Tambah Command / Kategori](#tambah-command--kategori)
+- [Catatan Baileys Fork](#catatan-baileys-fork)
+- [Troubleshooting](#troubleshooting)
+- [Changelog](#changelog)
 
-## Cara jalanin
+## Fitur
+- **Menu interaktif**: `.menu` (kategori), `.allmenu` (semua command), usage per-command
+- **AI**: `gemini`, `chatgpt`, `deepai`, `deepseek`, dll (`menu/ai.js` + `menusystem/ai.js`)
+- **AI Image**: `removebg`, `tosketch`, `hitamkan`, `enhancer`, `image2prompt`, `img2img`, `topixel`
+- **Sticker tools**: `.s` / `.stiker`, `.toimg`, `.wm` (rename pack), `.brat`, `.bratvid`
+- **Downloader**: TikTok, Instagram, Facebook, Spotify, Pinterest, Douyin, YouTube (`ytmp3`/`ytmp4`)
+- **Stream/Search/Stalker/Random/Berita/Game** — masing-masing kategori di `menu/`
+- **Kontrol owner**: `.setprefix`, `.setnick`, `.useprofile`, `.usebanner`, `listgc`/`joingc`/`outgc`
+- **Whitelist**: private chat (`addwl`/`removewl`) + grup (`setgc`/`delgc`/`whitelist.json`)
+- **JID-aware**: support nomor biasa dan `@lid` (LID resolve + cache)
 
-1. Pastikan Node.js versi 18+ sudah terpasang.
-2. Install dependency:
-   ```
-   npm install
-   ```
-3. Jalankan bot:
-   ```
-   npm start
-   ```
-4. Scan QR yang muncul di terminal pakai WhatsApp di HP kamu.
+## Persyaratan
+- Node.js **18+** dan npm
+- **FFmpeg** di `PATH` (untuk sticker video/GIF dan `bratvid`)
+- Akun WhatsApp yang bisa scan QR
 
-## Cara pakai bot
+## Instalasi & Menjalankan
 
-- `.menu` → nampilin **List interaktif** berisi 11 kategori
-  (ai, aiimage, maker, downloader, stream, search, stalker, tools,
-  random, berita, game). List cuma jalan di chat pribadi (bukan grup).
-- `.allmenu` → teks biasa, nampilin SEMUA command dari SEMUA kategori
-  sekaligus (List gak muat kalau isinya sebanyak ini)
-- `.ai` (atau kategori lain) → List interaktif isi kategori itu
-- `.gemini` (tanpa isi apapun) → teks cara pakai command itu + contoh
-- `.gemini <teks>` → jalanin command itu beneran (masih placeholder)
+```bash
+npm install
+npm start
+# atau
+node index.js
+```
 
-Klik salah satu opsi di List otomatis kekirim balik ke bot kayak user
-ngetik manual (misal klik ".gemini" di List = sama kayak ngetik ".gemini").
+Scan QR di terminal pakai WhatsApp HP kamu. Sesi login tersimpan di `auth_info/` (jangan di-commit, sudah di `.gitignore`).
 
-## Whitelist grup
+Bump versi (sinkron `package.json` + entri `README.md` → Changelog):
 
-Bot **cuma merespon di grup yang udah di-whitelist**. Grup lain diemin total
-(gak ada balasan, gak ada reaction). Chat pribadi tetap jalan seperti biasa.
+```bash
+npm run bump        # patch  1.2.2 -> 1.2.3
+npm run bump:minor  # minor
+npm run bump:major  # major
+```
 
-- `.idgc` → (owner only) tampilin ID grup. Jalan di semua grup.
-- `.setgc <idgc>` → (owner only) whitelist grup itu. Bisa dikirim dari chat mana aja.
-- `.delgc <idgc>` → (owner only) cabut grup dari whitelist.
-- Datanya disimpen di `database/whitelist.json`.
-- `database/bot_config.json` nyimpen prefix (berubah tiap `.setprefix`).
+Versi bot diambil langsung dari `package.json` (tidak ada lagi `env/.env.versions`).
 
-## Struktur folder
+## Cara Pakai
+
+| Perintah | Fungsi |
+|---|---|
+| `.menu` | List interaktif 11 kategori (hanya di chat pribadi) |
+| `.allmenu` | Semua command sekaligus dalam teks |
+| `.ai` `.maker` `.downloader` ... | Buka kategori tertentu |
+| `.gemini <teks>` | Jalankan command AI (tanpa argumen = tampilkan usage) |
+| `.s` (reply foto/video) | Jadikan sticker |
+| `.owner` | Menu khusus owner (silent untuk non-owner) |
+
+> Klik opsi di List/nativeFlow otomatis terkirim balik ke bot seperti mengetik manual (mis. klik `.gemini` = sama dengan mengetik `.gemini`).
+
+## Whitelist Grup
+Bot **hanya merespon di grup yang sudah di-whitelist**. Grup lain didiamkan total (tanpa balasan/reaction). Chat pribadi tetap normal.
+
+- `.idgc` — (owner only) tampilkan ID grup saat ini. Jalan di semua grup.
+- `.setgc <idgc>` — whitelist grup (bisa dari chat mana saja)
+- `.delgc <idgc>` — cabut grup dari whitelist
+- `.listgc` / `.listgrup` — daftar grup yang diikuti bot (owner only)
+- `.joingc <link undangan>` — join via link lalu auto-whitelist
+- `.outgc` / `.outgc <nomor|idgc>` — keluar grup
+- Data disimpan di `database/whitelist.json`
+- `database/bot_config.json` menyimpan prefix runtime (berubah via `.setprefix`)
+
+## Konfigurasi Owner
+
+Edit `config.json` di root:
+
+```json
+{
+  "prefix": ".",
+  "admins": ["089531367146"],
+  "adminJids": []
+}
+```
+
+- `admins` — nomor HP owner (format `08xxx` atau `628xxx`, keduanya dinormalisasi)
+- `adminJids` — JID mentah untuk akun `@lid` yang tidak bisa di-resolve via nomor
+- Prefix runtime bisa diubah tanpa restart: `.setprefix !` (tersimpan di `database/bot_config.json`)
+
+## Struktur Folder
 
 ```
 wabase/
-├── index.js                         -> entry point; koneksi WA, QR, autoread,
-│                                      parsing pesan/List/nativeFlow, kick watcher
-├── config.js                        -> runtime config: prefix, whitelist private/grup,
-│                                      owner check termasuk resolve @lid
-├── config.json                      -> config manual: prefix awal, admins, adminJids
-├── package.json                     -> dependency + npm start
-├── package-lock.json                -> lock dependency npm
-├── README.md                        -> dokumentasi project
-│
+├── index.js                 → entry point, koneksi WA, QR, autoread, kick watcher
+├── config.js                → runtime config: prefix, whitelist, isOwner/isOwnerAsync
+├── config.json              → config manual owner (admins, prefix awal)
+├── package.json             → dependency + scripts (start, bump)
 ├── handlers/
-│   └── messageHandler.js            -> semua routing command, guard whitelist,
-│                                      owner command, AI, sticker, downloader, tools
-│
+│   └── messageHandler.js    → routing semua command, guard whitelist, reaction
 ├── menu/
-│   ├── mainmenu.js                  -> registry seluruh kategori + findCategory/findCommand
-│   ├── menuText.js                  -> builder menu List, nativeFlow, text, usage, allmenu
-│   ├── ai.js                        -> menu command AI
-│   ├── aiimage.js                   -> menu command AI Image
-│   ├── maker.js                     -> menu sticker, brat, bratvid, wm
-│   ├── downloader.js                -> menu TikTok, Instagram, Facebook
-│   ├── stream.js                    -> menu streaming
-│   ├── search.js                    -> menu pencarian
-│   ├── stalker.js                   -> menu stalker
-│   ├── tools.js                     -> menu tools: sticker, toimg, rvo, getprofile, dll
-│   ├── random.js                    -> menu random
-│   ├── berita.js                    -> menu berita
-│   ├── game.js                      -> menu game
-│   └── owner.js                     -> menu command admin/owner
-│
+│   ├── mainmenu.js          → registry kategori + findCategory/findCommand
+│   ├── menuText.js          → builder List / nativeFlow / text / usage / allmenu
+│   ├── ai.js aiimage.js maker.js downloader.js stream.js search.js
+│   ├── stalker.js tools.js random.js berita.js game.js owner.js
 ├── menusystem/
-│   ├── ai.js                        -> provider API Gemini, ChatGPT, DeepSeek, dll
-│   ├── aiimage.js                   -> removebg, sketch, enhancer, img2img, dll
-│   ├── maker.js                     -> request brat/bratvid + download media API
-│   ├── downloader.js                -> detect URL TikTok/IG/FB, panggil API, parse result
-│   └── menuImage.js                 -> pilih gambar random dari assets/ untuk header menu
-│
+│   ├── ai.js aiimage.js maker.js downloader.js menuImage.js
 ├── systemconverter/
-│   ├── jid.js                       -> normalisasi nomor, JID, mapping @lid ke nomor
-│   ├── ffmpeg.js                    -> convert video/GIF ke animated WebP
-│   ├── jpg-pngtowebp.js             -> convert gambar ke WebP sticker
-│   ├── stickerMeta.js               -> EXIF pack/author + rename metadata sticker (.wm)
-│   └── tempDir.js                   -> folder file sementara converter
-│
+│   ├── jid.js               → normalizePhone, jidToNumber, resolvePNForLid
+│   ├── stickerMeta.js       → EXIF pack/author, restampStickerMeta (.wm)
+│   ├── ffmpeg.js jpg-pngtowebp.js tempDir.js
 ├── database/
-│   ├── bot_config.json              -> prefix runtime + whitelist chat private
-│   └── whitelist.json               -> daftar JID grup yang boleh direspon bot
-│
-├── assets/
-│   ├── 1.jpg                        -> gambar header menu
-│   ├── 2.jpg                        -> gambar header menu
-│   └── README.md                    -> catatan asset
-│
+│   ├── whitelist.json       → daftar JID grup yang di-whitelist
+│   └── bot_config.json      → prefix runtime (di-ignore git)
 ├── env/
-│   ├── .env.sticker                 -> packname/author default sticker
-│
-├── auth_info/                       -> sesi WhatsApp Baileys; rahasia, jangan dibagikan
-│   ├── creds.json                   -> kredensial akun WhatsApp
-│   ├── app-state-sync-*.json        -> state sinkronisasi WhatsApp
-│   └── device-list-*.json           -> daftar device WhatsApp
-│
-└── node_modules/                    -> dependency hasil npm install; jangan diedit manual
+│   └── .env.sticker         → packname/author default sticker
+├── assets/                  → 1.jpg, 2.jpg (header menu)
+├── auth_info/               → sesi Baileys (jangan dibagikan, di-ignore git)
+└── _plugins/                → plugin AI & Downloader
 ```
 
-Alur fitur baru:
-- Tambah nama/usage command: `menu/<kategori>.js`
-- Tambah kategori: buat `menu/<kategori>.js`, lalu register di `menu/mainmenu.js`
-- Tambah logic command: `handlers/messageHandler.js`
-- Buat integrasi API/helper: `menusystem/`
-- Buat convert media/JID/sticker: `systemconverter/`
-- Simpan state runtime: `database/`
+## Tambah Command / Kategori
 
-## Cara nambah command / kategori baru
+1. **Tambah command**: buka `menu/<kategori>.js`, tambah objek di array `commands`
+   ```js
+   { command: "namabaru", description: "...", usage: ".namabaru <arg>", example: ".namabaru halo" }
+   ```
+   Otomatis muncul di `.menu`, `.allmenu`, dan `buildCommandUsage`.
 
-Buka file kategorinya di `menu/<kategori>.js`, tambah objek baru di array
-`commands`. Otomatis kebaca di `.menu`, `.allmenu`, List kategori, dan usage.
-Kategori baru: buat file baru lalu daftarkan di `menu/mainmenu.js`.
+2. **Kategori baru**: buat `menu/<namakategori>.js`, lalu daftarkan di `menu/mainmenu.js`:
+   ```js
+   require("./namakategori"),
+   ```
+
+3. **Logic command**: implementasi di `handlers/messageHandler.js` (cek `parseCommand`, guard whitelist, `react`).
+
+4. **Integrasi API/helper**: taruh di `menusystem/` atau `systemconverter/`.
+
+## Catatan Baileys Fork
+
+Project ini memakai **`@itsliaaa/baileys`** — fork komunitas (bukan resmi WhiskeySockets/Baileys) yang menambah dukungan pesan interaktif (buttons, list, native flow) lebih rapi.
+
+- Library tidak resmi, di-maintain satu developer: https://github.com/itsliaaa/baileys
+- Risiko: bisa berhenti di-update, ada risiko supply-chain, dan WA bisa memblokir fitur List sewaktu-waktu
+- Jika List tidak reliable, fallback paling aman adalah menu teks/angka tanpa dependency tambahan
+
+## Troubleshooting
+
+**List tidak muncul di HP kamu**
+> WA di device/app version tersebut memblokir pesan interaktif tidak resmi — bukan bug kode. Solusi: pakai `.allmenu` / menu teks, atau pindah ke WhatsApp Cloud API resmi Meta (setup berbeda total).
+
+**Sticker video/GIF gagal**
+> Pastikan FFmpeg terpasang dan `ffmpeg` ada di `PATH`. Di Windows cek `C:\ffmpeg\bin\ffmpeg.exe`.
+
+**Bot tidak merespon di grup**
+> Cek whitelist: grup harus di-`setgc` dulu oleh owner. Chat pribadi tidak terpengaruh whitelist grup.
+
+**Prefix tidak berubah**
+> `.setprefix` menyimpan ke `database/bot_config.json`. Jika file terhapus, prefix kembali ke `config.json`.
 
 ## Changelog
 
 | Versi | Tanggal | Catatan |
 |-------|---------|---------|
-| 1.2.2 | 2026-09-29 | bump patch |
-| Versi | Tanggal | Catatan |
-|-------|---------|---------|
+| 1.2.2 | 2026-09-29 | Hapus `env/.env.versions`, versi now dari `package.json`; bump script hanya sync `package.json` + README; perbaiki README |
 | 1.2.1 | 2026-09-29 | bump patch |
-
-## Kalau List juga gak muncul di device kamu
-
-Ini kemungkinan besar berarti WA di sisi kamu (device/app version)
-konsisten nge-block segala jenis pesan interaktif tidak resmi — bukan
-soal kodenya lagi. Solusi paling stabil di titik itu:
-1. Balik ke menu teks/angka (base paling awal, gak ada dependency aneh)
-2. Atau pindah ke WhatsApp Cloud API resmi dari Meta (dijamin muncul,
-   tapi setup beda total, butuh akun Meta Business)
