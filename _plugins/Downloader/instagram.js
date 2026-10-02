@@ -197,7 +197,7 @@ function parseSearchResult(payload) {
     return result;
 }
 
-// ============ EXPRESS HANDLER ============
+
 const instagram = async (req, res) => {
     try {
         const url = (req.query.url || req.body?.url || '').toString();

@@ -1,34 +1,17 @@
-// ============================================================
-//  SYSTEM / MAKER — brat (sticker statis) & bratvid (sticker gerak)
-// ============================================================
-
 const https  = require("https");
 const http   = require("http");
 const fs     = require("fs");
 const path   = require("path");
-const os     = require("os");
 
 const { TEMP_DIR, ensureTempDir } = require("../systemconverter/tempDir");
-const { videoToAnimatedWebp }     = require("../systemconverter/ffmpeg");
+const { videoToAnimatedWebp, getFfmpegPath } = require("../systemconverter/ffmpeg");
 const { addStickerMeta }          = require("../systemconverter/stickerMeta");
 
-// ── User-Agent biar API gak nolak request ───────────────────
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
   "AppleWebKit/537.36 (KHTML, like Gecko) " +
   "Chrome/124.0.0.0 Safari/537.36";
 
-// ── Path ffmpeg: Windows → C:\ffmpeg\bin, VPS/Linux → PATH ─
-function getFfmpegPath() {
-  if (os.platform() === "win32") {
-    const win = "C:\\ffmpeg\\bin\\ffmpeg.exe";
-    if (fs.existsSync(win)) return win;
-  }
-  return "ffmpeg";
-}
-
-// ── GET mentah → { buffer, contentType }, ikutin redirect ───
-// Selalu pakai GET + User-Agent (banyak API nolak request tanpa UA).
 function rawGet(url, redirectsLeft = 5) {
   return new Promise((resolve, reject) => {
     const opts = {
@@ -69,13 +52,6 @@ function rawGet(url, redirectsLeft = 5) {
   });
 }
 
-// ── Cari URL gambar/video di dalam objek JSON hasil API ─────
-// Endpoint kayak gini biasanya balikin JSON, bukan file langsung, contoh:
-//   { status: true, result: { url: "https://..." } }
-//   { status: true, data: "https://..." }
-//   { url: "https://..." }
-// Jadi kita cari field bernama url/link/result/data/image/video secara
-// rekursif, ambil string pertama yang keliatan kayak URL http(s).
 function findUrlInJson(obj, depth = 0) {
   if (depth > 4 || obj == null) return null;
   if (typeof obj === "string") {
@@ -89,7 +65,6 @@ function findUrlInJson(obj, depth = 0) {
     return null;
   }
   if (typeof obj === "object") {
-    // prioritaskan nama field yang umum dipakai
     const priorityKeys = ["url", "link", "result", "data", "image", "video", "webp", "sticker"];
     for (const key of priorityKeys) {
       if (key in obj) {
@@ -97,7 +72,7 @@ function findUrlInJson(obj, depth = 0) {
         if (found) return found;
       }
     }
-    // fallback: cek semua field lain
+
     for (const key of Object.keys(obj)) {
       if (priorityKeys.includes(key)) continue;
       const found = findUrlInJson(obj[key], depth + 1);
@@ -107,9 +82,6 @@ function findUrlInJson(obj, depth = 0) {
   return null;
 }
 
-// ── Download URL → Buffer gambar/video final ─────────────────
-// Auto-detect: kalau API balikin JSON (bukan file langsung), extract
-// URL hasil dari JSON-nya lalu di-GET ulang (masih pakai UA yang sama).
 async function fetchBuffer(url) {
   const first = await rawGet(url);
   const looksLikeJson =
@@ -127,7 +99,6 @@ async function fetchBuffer(url) {
   try {
     json = JSON.parse(first.buffer.toString("utf8"));
   } catch {
-    // bukan JSON valid meskipun keliatan kayak JSON — anggap ini file asli
     return first.buffer;
   }
 
@@ -144,7 +115,6 @@ async function fetchBuffer(url) {
   return second.buffer;
 }
 
-// ── Tulis buffer ke file tmp, return path ───────────────────
 function writeTmp(buffer, ext) {
   ensureTempDir();
   const filePath = path.join(
@@ -155,31 +125,23 @@ function writeTmp(buffer, ext) {
   return filePath;
 }
 
-// ── Hapus file tmp (best effort) ────────────────────────────
 function cleanup(...files) {
   for (const f of files) {
     try { if (f && fs.existsSync(f)) fs.unlinkSync(f); } catch {}
   }
 }
 
-// ============================================================
-//  brat — sticker statis
-// ============================================================
 async function makeBrat(text) {
   const encoded = encodeURIComponent(text);
   const url = `https://api.mayzaa.my.id/mayzaa/maker/brat?text=${encoded}`;
-  // Cukup return raw buffer dari API — konversi ke webp + inject EXIF
-  // dilakukan di handler .brat pakai pipeline yang sama dengan .s/.stiker
+
   return fetchBuffer(url);
 }
 
-// ============================================================
-//  bratvid — animated sticker
-// ============================================================
 async function makeBratVid(text) {
   const encoded = encodeURIComponent(text);
   const url = `https://api.mayzaa.my.id/mayzaa/maker/bratvid?text=${encoded}`;
-  const vidBuffer = await fetchBuffer(url); // direct mp4 + UA, fetchBuffer handle redirect/JSON fallback
+  const vidBuffer = await fetchBuffer(url);
   const inputPath = writeTmp(vidBuffer, ".mp4");
   let outputPath;
   try {
@@ -188,7 +150,7 @@ async function makeBratVid(text) {
       maxDuration: 6,
       ffmpegPath: getFfmpegPath(),
     });
-    // Baca, inject EXIF, tulis ulang
+
     const webpBuffer  = fs.readFileSync(outputPath);
     const finalBuffer = addStickerMeta(webpBuffer);
     fs.writeFileSync(outputPath, finalBuffer);

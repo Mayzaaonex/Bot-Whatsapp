@@ -119,7 +119,7 @@ const facebook = async (req, res) => {
             return res.json({ ...credit, status: false, message: 'Parameter url wajib diisi' });
         }
 
-        // Validasi URL Facebook
+
         const fbRegex = /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.watch|fb\.com)\//i;
         if (!fbRegex.test(url)) {
             return res.json({ ...credit, status: false, message: 'URL Facebook tidak valid' });

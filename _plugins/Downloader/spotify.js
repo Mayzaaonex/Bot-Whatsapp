@@ -205,7 +205,7 @@ const spotify = async (req, res) => {
             return res.json({ ...credit, status: false, message: 'Parameter url wajib diisi' });
         }
 
-        // Validasi URL Spotify
+
         const spotifyRegex = /^(https?:\/\/)?(open\.spotify\.com|spotify\.com)\//i;
         if (!spotifyRegex.test(url)) {
             return res.json({ ...credit, status: false, message: 'URL Spotify tidak valid' });

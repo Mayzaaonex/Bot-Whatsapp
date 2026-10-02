@@ -1,10 +1,4 @@
-/**
- * qwen edit
- * Creator: IzzXd
- * Base: https://prithivmlmods-qwen-image-edit-object-manipulator.hf.space
- * Saluran: https://whatsapp.com/channel/0029VbCv97v9Bb5tC5cZFl0K
- * Note: JANGAN HAPUS WM, HARGAIN YANG SCRAPE
- */
+
 
 const fs = require('fs')
 const path = require('path')

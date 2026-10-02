@@ -15,10 +15,10 @@ const categories = [
     emoji: "",
     title: "",
     description: "<--------------------------------------------->",
-    isAllMenuSeparator: true, 
+    isAllMenuSeparator: true,
     commands: [],
   },
-  require("./owner"), 
+  require("./owner"),
 ];
 
 

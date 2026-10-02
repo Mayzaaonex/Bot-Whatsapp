@@ -40,7 +40,7 @@ async function shortenUrl(url) {
   }
 }
 
-// command bot -> fungsi provider AI yang dipanggil
+
 const AI_HANDLERS = {
   gemini: aiProviders.gemini,
   chatgpt: aiProviders.chatgpt,
@@ -50,41 +50,30 @@ const AI_HANDLERS = {
   gemini31pro: aiProviders.gemini31Pro,
 };
 
-// META AI bot JID resmi (dari Meta, bukan nomor biasa — makanya "@bot")
+
 const META_AI_JID = "867051314767696@bot";
 
-/**
- * JID buat sender dipake jadi @mention itu HARUS format personal
- * ("...@s.whatsapp.net"), sedangkan sender bisa aja "@lid". Fungsi ini
- * nyari nomor asli sender (dari cache LID kalau perlu) terus bikinin
- * JID yang valid buat di-mention di pesan WA.
- */
+
+
 function toMentionJid(sender) {
   if (sender.endsWith("@lid")) {
     const number = getCachedPNForLid(sender);
-    return number ? phoneToJid(number) : sender; // fallback: mention apa adanya
+    return number ? phoneToJid(number) : sender;
   }
   return sender;
 }
 
-// ── OWNER ────────────────────────────────────────────────────────────
-// Nomor admin/owner diatur di config.json (root project), BUKAN di sini.
-// Bisa isi lebih dari satu nomor, format 08xxx atau 628xxx dua-duanya jalan.
-// Kalau JID pengirim tipe "@lid" (kayak yang dialamin owner), fungsi ini
-// otomatis nge-decode ke nomor HP asli lewat sock (lihat system/jid.js).
+
 async function isOwner(sock, jid) {
   return config.isOwnerAsync(sock, jid);
 }
 
-// ── PARSER ───────────────────────────────────────────────────────────
-// Pisahin prefix + command + args dari teks mentah.
-// Prefix dibaca dari config supaya dinamis.
-// Contoh: "!gemini halo" → { command: "gemini", args: "halo", hasPrefix: true }
+
 function parseCommand(rawText) {
   const text = rawText.trim();
   const p = config.prefix;
 
-  // escape karakter regex khusus di prefix (e.g. "." jadi "\.")
+
   const escapedP = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const prefixRegex = new RegExp(`^${escapedP}`);
 
@@ -101,23 +90,20 @@ function parseCommand(rawText) {
   };
 }
 
-// List di Baileys CUMA jalan di chat pribadi
+
 function isGroup(jid) {
   return jid.endsWith("@g.us");
 }
 
-// ── WHITELIST GUARD ───────────────────────────────────────────────────
-// Chat pribadi: whitelist nomor (.addwl) — kosong → semua orang boleh.
+
 function isAllowed(jid) {
   return config.isAllowed(jid);
 }
 
-// Grup: cuma grup yang ada di database/whitelist.json yang direspon.
-// Kecuali command owner di bawah ini — jalan di SEMUA grup (biar owner
-// bisa ambil ID grup & daftarin grup baru), non-owner tetap diemin.
+
 const OWNER_ANY_GROUP_COMMANDS = ["idgc", "setgc", "delgc", "listgc", "listgrup", "listgroup", "grouplist", "outgc", "joingc"];
 
-// "1203630...@g.us" atau cuma "1203630..." → JID grup valid (atau null)
+
 function normalizeGroupJid(input) {
   const raw = (input || "").trim().split(/\s+/)[0];
   if (!raw) return null;
@@ -131,49 +117,40 @@ function getInviteCode(input) {
   return match?.[1] || null;
 }
 
-// ── GREETING HELPER ───────────────────────────────────────────────────
-// Sapaan bahasa Jepang sesuai waktu WIB (UTC+7), format jam 24 jam.
-//   04:00 – 10:59  → Ohayou gozaimasu ☀️  (Selamat Pagi)
-//   11:00 – 17:59  → Konnichiwa 🌤️        (Selamat Siang)
-//   18:00 – 03:59  → Konbanwa 🌙           (Selamat Malam)
+
 function getGreeting() {
-  // Ambil jam sekarang dalam zona WIB (UTC+7)
+
   const nowWIB = new Date(Date.now() + 7 * 60 * 60 * 1000);
-  const hour = nowWIB.getUTCHours(); // 0–23
+  const hour = nowWIB.getUTCHours();
 
   if (hour >= 4 && hour < 11) {
-    return "Ohayou gozaimasu ☀️"; // Pagi
+    return "Ohayou gozaimasu ☀️";
   } else if (hour >= 11 && hour < 18) {
-    return "Konnichiwa 🌤️";       // Siang
+    return "Konnichiwa 🌤️";
   } else {
-    return "Konbanwa 🌙";          // Malam (18:00 – 03:59)
+    return "Konbanwa 🌙";
   }
 }
 
-// ── REACTION HELPER ───────────────────────────────────────────────────
-// Kirim reaction emoji ke pesan tertentu.
-// msgKey = msg.key dari event messages.upsert (berisi id, remoteJid, dll)
-// emoji  = string emoji, e.g. "⏳", "✅", "❌"
+
 async function react(sock, msgKey, emoji) {
   try {
     await sock.sendMessage(msgKey.remoteJid, {
       react: { text: emoji, key: msgKey },
     });
   } catch (e) {
-    // reaction gagal (e.g. pesan terlalu lama) → cukup log, jangan crash
+
     console.error("⚠️  Gagal kirim reaction:", e.message);
   }
 }
 
-// ── HANDLER UTAMA ─────────────────────────────────────────────────────
-// msgKey ditambahkan sebagai parameter baru (opsional, bisa undefined kalau
-// dipanggil dari tempat lain yang belum nyiapin key)
+
 async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, msgKey, msg) {
   if (!rawText?.trim()) return;
 
   let { command, args, hasPrefix } = parseCommand(rawText);
 
-  // Link TikTok/Instagram/Facebook tanpa prefix → auto-download.
+
   if (!hasPrefix) {
     const detected = require("../menusystem/downloader").detectDownloaderUrl(rawText);
     if (detected) {
@@ -188,10 +165,9 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
   const group = isGroup(from);
   const p = config.prefix;
 
-  // ── whitelist check ──
-  // Semua penolakan di sini DIEM TOTAL: gak ada balasan, gak ada reaction.
+
   if (OWNER_ANY_GROUP_COMMANDS.includes(command)) {
-    // .idgc / .setgc: khusus owner, jalan di grup mana aja (whitelist atau bukan)
+
     if (!(await isOwner(sock, sender))) return;
   } else if (group) {
     if (!config.isGroupAllowed(from)) return;
@@ -199,19 +175,16 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── reaction: ⏳ tanda bot mulai proses ──────────────────────────
-  // Kalau msgKey tersedia, langsung kasih reaction jam pasir supaya
-  // user tau perintahnya ke-detect dan lagi diproses.
+
   if (msgKey) await react(sock, msgKey, "⏳");
 
-  // ── menu ─────────────────────────────────────────────────────────
+
   if (command === "menu") {
     const mentionJid = toMentionJid(sender);
     const mentionTag = `@${mentionJid.split("@")[0]}`;
     const greeting = `${getGreeting()} 👋 ${mentionTag}\n\nSilakan pilih menu di bawah ini ya 👇`;
 
-    // Full lokal — baca dari /assets, gak ada network call sama sekali,
-    // jadi gak ada delay. Kalau /assets kosong, jalan tanpa gambar.
+
     const imageBuffer = pickMenuImageBuffer();
 
     if (group) {
@@ -234,10 +207,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
         });
       }
     } else {
-      // List message di private chat gak bisa ditempelin gambar header
-      // langsung (limitasi Baileys) — jadi gambar preview dikirim
-      // sebagai pesan terpisah (sapaan + gambar), nyusul List-nya
-      // persis di belakang.
+
       if (imageBuffer) {
         try {
           await sock.sendMessage(from, {
@@ -259,27 +229,23 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── allmenu ───────────────────────────────────────────────────────
+
   if (command === "allmenu") {
     await sock.sendMessage(from, { text: buildAllMenu() });
     if (msgKey) await react(sock, msgKey, "✅");
     return;
   }
 
-  // ── separator __allmenu__ dipilih dari list/interactive ───────────
-  // rowId-nya ".__allmenu__" → ditangkap sebagai kategori,
-  // tapi kita handle khusus di sini
+
   if (command === "__allmenu__") {
     await sock.sendMessage(from, { text: buildAllMenu() });
     if (msgKey) await react(sock, msgKey, "✅");
     return;
   }
 
-  // ── owner commands ────────────────────────────────────────────────
 
-  // .owner — menu khusus owner. Kalau bukan owner: DIEMIN, gak dibales
-  // sama sekali — biar orang lain gak tau menu ini eksis/isinya apa.
-  // Teks menu diambil dari menu/mainmenu/owner.js (directText) — edit di sana.
+
+
   if (command === "owner") {
     if (!(await isOwner(sock, sender))) {
       if (msgKey) await react(sock, msgKey, "");
@@ -299,8 +265,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .idgc — lihat ID grup ini (owner only, jalan di semua grup).
-  // Gate owner-nya udah dicek di whitelist check atas (non-owner diemin).
+
   if (command === "idgc") {
     if (!group) {
       await sock.sendMessage(from, {
@@ -323,7 +288,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .setgc <idgc> — whitelist grup (owner only, bisa dari chat mana aja)
+
   if (command === "setgc") {
     if (!args) {
       await sock.sendMessage(from, {
@@ -354,7 +319,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .delgc <idgc> — cabut grup dari whitelist (owner only, bisa dari chat mana aja)
+
   if (command === "delgc") {
     if (!args) {
       await sock.sendMessage(from, {
@@ -383,8 +348,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .listgc — list semua grup yang diikuti bot (nama + ID + total member)
-  // Owner only, bisa dikirim dari chat mana aja (pribadi / grup).
+
   if (["listgc", "listgrup", "listgroup", "grouplist"].includes(command)) {
     try {
       const allGroups = await sock.groupFetchAllParticipating();
@@ -396,7 +360,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
         return;
       }
 
-      // Urutkan: whitelist dulu, sisanya alfabet
+
       entries.sort((a, b) => {
         const aWl = config.isGroupAllowed(a.id) ? 0 : 1;
         const bWl = config.isGroupAllowed(b.id) ? 0 : 1;
@@ -426,9 +390,9 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .outgc <nomor urut dari listgc / idgc> — keluar grup lalu cabut dari whitelist (owner only).
+
   if (command === "outgc") {
-    // Helper: ambil & sort entries (sama persis kayak listgc)
+
     async function fetchSortedGroups() {
       const allGroups = await sock.groupFetchAllParticipating();
       const entries = Object.values(allGroups);
@@ -441,7 +405,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       return entries;
     }
 
-    // Tanpa args → tampilin list + instruksi
+
     if (!args || !args.trim()) {
       try {
         const entries = await fetchSortedGroups();
@@ -469,12 +433,11 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
     let groupJid = null;
 
-    // Cek nomor urut dulu (angka murni) — SEBELUM normalizeGroupJid
-    // biar "1" gak dikira JID "1@g.us"
+
     const rawArg = args.trim();
     const idx = parseInt(rawArg, 10);
     if (!isNaN(idx) && idx > 0 && String(idx) === rawArg) {
-      // input murni angka → resolve sebagai nomor urut listgc
+
       try {
         const entries = await fetchSortedGroups();
         if (idx > entries.length) {
@@ -491,7 +454,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
         return;
       }
     } else {
-      // Bukan angka murni → coba parse sebagai JID
+
       groupJid = normalizeGroupJid(rawArg);
     }
 
@@ -503,7 +466,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       return;
     }
 
-    // Ambil nama grup dulu sebelum leave (biar pesan konfirmasi lebih informatif)
+
     let groupName = groupJid;
     try {
       const meta = await sock.groupMetadata(groupJid).catch(() => null);
@@ -527,7 +490,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .joingc <link> — masuk via tautan undangan lalu otomatis whitelist (owner only).
+
   if (command === "joingc") {
     const inviteCode = getInviteCode(args);
     if (!inviteCode) {
@@ -560,7 +523,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .addmeta — invite bot Meta AI resmi ke grup (owner only, grup only)
+
   if (command === "addmeta") {
     if (!(await isOwner(sock, sender))) {
       if (msgKey) await react(sock, msgKey, "");
@@ -589,10 +552,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── useprofile — ganti foto profil bot ───────────────────────────────
-  // Cara pakai: kirim foto ke bot dengan caption "(prefix)useprofile"
-  // Foto diambil dari imageMessage, didownload, terus di-set sebagai
-  // profil picture akun WA yang lagi dipake bot.
+
   if (command === "useprofile") {
     if (!(await isOwner(sock, sender))) {
       if (msgKey) await react(sock, msgKey, "");
@@ -625,9 +585,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── usebanner — ganti banner WA Business ─────────────────────────────
-  // Sama kayak useprofile tapi update profile cover/banner.
-  // Hanya jalan kalau nomor WA bot terdaftar sebagai WA Business.
+
   if (command === "usebanner") {
     if (!(await isOwner(sock, sender))) {
       if (msgKey) await react(sock, msgKey, "");
@@ -660,10 +618,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── setnick — ganti nama/nickname bot di WA ───────────────────────────
-  // Contoh: .setnick Nama Custom
-  // Nama baru muncul ke orang lain setelah bot kirim pesan berikutnya
-  // (WA distribute pushName lewat header pesan, bukan real-time broadcast).
+
   if (command === "setnick") {
     if (!(await isOwner(sock, sender))) {
       if (msgKey) await react(sock, msgKey, "");
@@ -678,9 +633,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     }
     try {
       const newName = args.trim();
-      // Emit creds.update TANPA mutasi creds.me dulu — biarkan handler
-      // di socket.js yang detect perubahan nama dan otomatis kirim
-      // node <presence name="..."> ke server WA.
+
       sock.ev.emit("creds.update", { me: { ...sock.authState.creds.me, name: newName } });
       await sock.sendMessage(from, {
         text: `✅ Nama bot berhasil diganti ke *${newName}*\n\n_Nama baru aktif mulai pesan berikutnya._`,
@@ -696,7 +649,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .wm <nama pack> — rename sticker: reply sticker + .wm <pack> → kirim ulang
+
   if (command === "wm") {
     const packName = args.trim();
     if (!packName) {
@@ -712,7 +665,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       return;
     }
 
-    // Cari sticker: reply ke sticker ATAU sticker langsung
+
     const quotedMsg =
       msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
       msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
@@ -775,7 +728,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       if (msgKey) await react(sock, msgKey, "❌");
       return;
     }
-    const newPrefix = args.trim().charAt(0); // ambil 1 karakter pertama
+    const newPrefix = args.trim().charAt(0);
     config.prefix = newPrefix;
     await sock.sendMessage(from, {
       text:
@@ -788,7 +741,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // .getprofile — ambil foto profil orang yang di-tag (public)
+
   if (command === "getprofile" || command === "getpp" || command === "getpfp") {
     const ctx = msg?.message?.extendedTextMessage?.contextInfo ||
                 msg?.message?.interactiveResponseMessage?.contextInfo;
@@ -825,7 +778,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       if (msgKey) await react(sock, msgKey, "❌");
       return;
     }
-    // normalisasi: hilangkan karakter non-digit, tambah suffix WA
+
     const num = args.trim().replace(/\D/g, "");
     const jid = `${num}@s.whatsapp.net`;
     config.addWhitelist(jid);
@@ -880,8 +833,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── getjid: encode nomor HP -> JID WhatsApp ─────────────────────────
-  // Contoh: .getjid 089531367146  atau  .getjid 6289531367146
+
   if (command === "getjid" || command === "encode") {
     if (!(await isOwner(sock, sender))) {
       await sock.sendMessage(from, { text: "⛔ Command ini khusus owner." });
@@ -908,10 +860,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── getnumber: decode JID/@lid -> nomor HP asli ──────────────────────
-  // Bisa dipakai 2 cara:
-  //   - reply ke pesan orang lain: .getnumber
-  //   - tempel JID langsung: .getnumber 129111632691455@lid
+
   if (command === "getnumber" || command === "decode") {
     if (!(await isOwner(sock, sender))) {
       await sock.sendMessage(from, { text: "⛔ Command ini khusus owner." });
@@ -953,8 +902,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── maker: brat ──────────────────────────────────────────────────
-  // .brat <teks> → sticker statis dari API brat
+
   if (command === "brat") {
     if (!args) {
       await sock.sendMessage(from, {
@@ -964,11 +912,9 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       return;
     }
     try {
-      // Ambil raw buffer dari API brat (GET + User-Agent, auto-handle
-      // kalau API-nya balikin JSON berisi URL hasil, bukan file langsung)
+
       const imgBuffer = await makeBrat(args);
-      // Hasil brat gak punya alpha channel → pakai bufferToWebp (bg putih),
-      // BUKAN bufferToWebpTransparent (itu buat sticker yang usernya kirim sendiri)
+
       const { bufferToWebp }   = require("../systemconverter/jpg-pngtowebp");
       const { addStickerMeta } = require("../systemconverter/stickerMeta");
       const webpBuffer    = await bufferToWebp(imgBuffer, 90);
@@ -985,8 +931,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── maker: bratvid ────────────────────────────────────────────────
-  // .bratvid <teks> → animated sticker dari API bratvid
+
   if (command === "bratvid") {
     if (!args) {
       await sock.sendMessage(from, {
@@ -1010,18 +955,15 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       });
       if (msgKey) await react(sock, msgKey, "❌");
     } finally {
-      // hapus file webp tmp setelah kirim
+
       try { if (webpPath && fs.existsSync(webpPath)) fs.unlinkSync(webpPath); } catch {}
     }
     return;
   }
 
-  // ── sticker: s / stiker / sticker ────────────────────────────────
-  // Reply foto/video/webp → dijadiin sticker dengan packname & author
-  // dari env/.env.sticker. Foto: sharp pipeline (VP8X + transparent bg).
-  // Video/GIF/webp animated: ffmpeg → animated webp.
+
   if (["s", "stiker", "sticker"].includes(command)) {
-    // Cari sumber media: quoted message atau imageMessage langsung
+
     const quotedMsg = msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage
                    || msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
     const directImg = msg?.message?.imageMessage;
@@ -1052,13 +994,13 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       const isVideo = !!(directVid || hasQuotedVid);
       const isWebp  = !!hasQuotedWebp;
 
-      // Tentuin pesan yang mau didownload
+
       let dlMsg;
       if (directImg || directVid) {
-        // Kirim langsung dengan caption .s
+
         dlMsg = msg;
       } else {
-        // Reply ke pesan lain — rebuild msg object dari quotedMessage
+
         const quotedKey = msg.message.extendedTextMessage?.contextInfo
                        || msg.message.interactiveResponseMessage?.contextInfo;
         dlMsg = {
@@ -1077,11 +1019,9 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       let stickerBuffer;
 
       if (isVideo || isWebp) {
-        // Video/GIF/animated webp → ffmpeg jadi animated webp
-        const os = require("os");
-        const ffmpegPath = os.platform() === "win32" && fs.existsSync("C:\\ffmpeg\\bin\\ffmpeg.exe")
-          ? "C:\\ffmpeg\\bin\\ffmpeg.exe"
-          : "ffmpeg";
+
+        const { getFfmpegPath } = require("../systemconverter/ffmpeg");
+        const ffmpegPath = getFfmpegPath();
 
         const inputExt = isWebp ? ".webp" : ".mp4";
         const inputPath = path.join(TEMP_DIR, `sticker-in-${Date.now()}${inputExt}`);
@@ -1097,7 +1037,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
           try { fs.unlinkSync(outputPath); } catch {}
         }
       } else {
-        // Foto → sharp → VP8X webp transparan → inject EXIF
+
         const webpBuffer = await bufferToWebpTransparent(buffer, 90);
         stickerBuffer = addStickerMeta(webpBuffer);
       }
@@ -1114,7 +1054,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── toimg: reply sticker → convert jadi foto biasa (PNG) ──────────
+
   if (["toimg", "toimage"].includes(command)) {
     const quotedMsg = msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage
                    || msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
@@ -1152,8 +1092,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       const buffer = await downloadMediaMessage(dlMsg, "buffer", {});
       if (!buffer || buffer.length === 0) throw new Error("Download sticker gagal, buffer kosong.");
 
-      // Sticker (webp, statis/animated) → PNG. Kalau animated, sharp
-      // otomatis ambil frame pertama.
+
       const pngBuffer = await sharp(buffer).png().toBuffer();
 
       await sock.sendMessage(
@@ -1172,16 +1111,12 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── rvo: buka ulang pesan sekali-lihat (foto/video/audio) ─────────
-  // Reply pesan "view once" lalu ketik .rvo → bot download & kirim
-  // ulang media-nya sebagai pesan biasa (gak sekali-lihat lagi).
+
   if (["rvo", "readonce", "viewonce"].includes(command)) {
     const quotedMsg = msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage
                    || msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
 
-    // Bongkar kemungkinan bentuk pesan view-once:
-    //  - dibungkus viewOnceMessage / viewOnceMessageV2 / viewOnceMessageV2Extension
-    //  - atau imageMessage/videoMessage/audioMessage langsung dengan flag viewOnce:true
+
     function unwrapViewOnce(container) {
       if (!container) return null;
       const wrapped =
@@ -1271,15 +1206,10 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── AI IMAGE commands ─────────────────────────────────────────────
-  // Flow semua command ini sama:
-  //   1. Cari gambar: direct imageMessage ATAU quoted imageMessage
-  //   2. Download pakai downloadMediaMessage
-  //   3. Kirim buffer ke fungsi processor di menusystem/aiimage.js
-  //   4. Kirim hasil: gambar (sendMessage image) atau teks
+
 
   if (["removebg", "tosketch", "hitamkan", "image2prompt", "img2img", "topixel", "enhancer"].includes(command)) {
-    // Cari sumber gambar — prioritas: gambar langsung dikirim, lalu quoted
+
     const quotedMsg =
       msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
       msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
@@ -1294,7 +1224,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       return;
     }
 
-    // .img2img wajib ada prompt di caption yang sama
+
     if (command === "img2img" && !args) {
       await sock.sendMessage(from, {
         text: `❌ Kasih prompt-nya juga dong wak.\nContoh: *${p}img2img ubah background jadi pantai*`,
@@ -1306,7 +1236,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     try {
       const { downloadMediaMessage } = require("@itsliaaa/baileys");
 
-      // Rebuild msg object buat quoted jika perlu
+
       let dlMsg;
       if (directImg) {
         dlMsg = msg;
@@ -1329,7 +1259,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
         throw new Error("Download gambar gagal, buffer kosong.");
       }
 
-      // Dispatch ke fungsi yang sesuai
+
       let result;
       if (command === "img2img") {
         result = await aiImage.img2img(imageBuffer, args);
@@ -1364,7 +1294,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
           { quoted: msg }
         );
       } else {
-        // type === "text" (image2prompt)
+
         await sock.sendMessage(from, {
           text: `🖼️ *Image to Prompt*\n\n${result.data}`,
         }, { quoted: msg });
@@ -1381,7 +1311,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── tombol download URL ────────────────────────────────────────
+
   if (command === "dlurl") {
     const url = args.trim();
     if (/^https?:\/\//i.test(url)) {
@@ -1391,7 +1321,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── DOWNLOADER (.tiktok / .ig /.fb + auto-detect kalau cuma kirim link) ─
+
   {
     const detect = require("../menusystem/downloader").detectDownloaderUrl;
     const url = args?.trim() || rawText?.trim() || "";
@@ -1426,8 +1356,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     if (target) {
       await sock.sendMessage(from, { text: "Please wait..." });
       if (!explicit) {
-        // auto-detect tanpa prefix juga bisa tapi biar gak spam: butuh prefix
-        // cek hasPrefix udah true di atas -> lanjut
+
       }
       const platform = target.platform;
       try {
@@ -1446,7 +1375,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
             await sock.sendMessage(from, { video: { url: item.url }, caption: captionOpt });
           }
         }
-        // Tombol inline: klik langsung kirim URL download.
+
                 const firstUrl = items[0]?.url;
                 if (firstUrl) {
                   const shortUrl = await shortenUrl(firstUrl);
@@ -1492,7 +1421,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     }
   }
 
-  // ── AI commands ────────────────────────────────────────────────
+
   if (AI_HANDLERS[command]) {
     if (!args) {
       const found = findCommand(command);
@@ -1519,10 +1448,10 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── kategori menu ─────────────────────────────────────────────────
+
   const category = findCategory(command);
   if (category) {
-    // Kalau user memilih separator __allmenu__ dari list (rowId = .__allmenu__)
+
     if (category.isAllMenuSeparator) {
       await sock.sendMessage(from, { text: buildAllMenu() });
       if (msgKey) await react(sock, msgKey, "✅");
@@ -1533,7 +1462,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       const text =
         typeof category.directText === "string"
           ? category.directText
-          : category.directText; // getter
+          : category.directText;
       await sock.sendMessage(from, { text });
     } else if (group) {
       try {
@@ -1548,7 +1477,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // ── command spesifik ──────────────────────────────────────────────
+
   const found = findCommand(command);
   if (found) {
     if (found.category.directText) {
@@ -1566,7 +1495,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       return;
     }
 
-    // TODO: sambungin ke fitur asli (API AI, downloader, dll)
+
     await sock.sendMessage(from, {
       text:
         `🚧 Command *${p}${found.command.command}* diterima dengan isi:\n"${args}"\n\n` +
@@ -1576,7 +1505,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     return;
   }
 
-  // command gak dikenali → hapus reaction ⏳ (ganti kosong) biar gak berisik
+
   if (msgKey) await react(sock, msgKey, "");
 }
 

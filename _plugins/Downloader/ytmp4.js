@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Usage: node a.js <youtube_url>
+
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36';
 const FORMAT = 'mp4';
@@ -50,19 +50,19 @@ async function run(youtubeUrl) {
   const videoId = extractVideoId(youtubeUrl);
   if (!videoId) throw new Error('Invalid YouTube URL');
 
-  // 1. Init
+
   const initRes = await httpGet(`https://a.ymcdn.org/api/v1/init?p=y&23=1llum1n471&_=${rand()}`);
   const initData = await initRes.json();
   if (initData.error !== 0 || !initData.convertURL) {
     throw new Error(`Init failed: ${JSON.stringify(initData)}`);
   }
 
-  // 2. Convert
+
   const convRes = await httpGet(`${initData.convertURL}&v=${videoId}&f=${FORMAT}`);
   const conv = await convRes.json();
   if (conv.error !== 0) throw new Error(`Convert failed: ${JSON.stringify(conv)}`);
 
-  // 3. Poll
+
   let progress = 0;
   let attempts = 0;
   while (progress < 3 && attempts < 60) {
@@ -74,7 +74,7 @@ async function run(youtubeUrl) {
   }
   if (progress < 3) throw new Error(`Timeout (progress=${progress})`);
 
-  // 4. Redirect — ambil URL final
+
   const redirRes = await httpGet(conv.downloadURL);
   let finalUrl = conv.downloadURL;
   if ([301, 302, 303, 307, 308].includes(redirRes.status)) {
@@ -92,9 +92,7 @@ async function run(youtubeUrl) {
   };
 }
 
-// ============================================================
-// CLI — PURE JSON, PRETTY PRINT
-// ============================================================
+
 (async () => {
   const url = process.argv[2];
 

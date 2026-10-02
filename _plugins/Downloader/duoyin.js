@@ -59,7 +59,7 @@ const douyin = async (req, res) => {
             return res.json({ ...credit, status: false, message: 'Parameter url wajib diisi' });
         }
 
-        // Validasi URL Douyin
+
         const douyinRegex = /^(https?:\/\/)?(www\.)?(douyin\.com|v\.douyin\.com)\//i;
         if (!douyinRegex.test(url)) {
             return res.json({ ...credit, status: false, message: 'URL Douyin tidak valid' });

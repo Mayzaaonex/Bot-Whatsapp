@@ -26,7 +26,7 @@ const tiktok = async (req, res) => {
         const url = req.query.url || '';
         if (!url) return res.json({ ...credit, status: false, message: 'Parameter url wajib diisi' });
 
-        // Validasi URL TikTok
+
         const ttRegex = /^(https?:\/\/)?(www\.)?(tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)\//i;
         if (!ttRegex.test(url)) {
             return res.json({ ...credit, status: false, message: 'URL TikTok tidak valid' });

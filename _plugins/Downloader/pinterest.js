@@ -71,7 +71,7 @@ const pinterest = async (req, res) => {
             return res.json({ ...credit, status: false, message: 'Parameter url wajib diisi' });
         }
 
-        // Validasi URL Pinterest
+
         const pinRegex = /^(https?:\/\/)?(www\.)?(pinterest\.com|pin\.it)\//i;
         if (!pinRegex.test(url)) {
             return res.json({ ...credit, status: false, message: 'URL Pinterest tidak valid' });

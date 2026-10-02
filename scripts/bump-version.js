@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-// bump-version.js — bump package.json + README.md
-// usage: node scripts/bump-version.js [patch|minor|major]  (default: patch)
+
 const fs = require("fs");
 const path = require("path");
 
@@ -24,19 +23,19 @@ pkg.version = next;
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 console.log(`package.json -> ${next}`);
 
-// README.md -> badge + changelog
+
 try {
   let md = fs.readFileSync(readmePath, "utf8");
-  // update versi badge line: > Versi: X.Y.Z  atau Mayzaabot-vX.Y.Z
+
   md = md.replace(/(Versi:\s*)[\d.]+/, `$1${next}`);
-  // update changelog table first row if exists, else insert
+
   const today = new Date().toISOString().slice(0,10);
   if (md.includes("## Changelog")) {
     md = md.replace(
       /## Changelog\s*\n/,
       `## Changelog\n\n| Versi | Tanggal | Catatan |\n|-------|---------|---------|\n| ${next} | ${today} | bump ${type} |\n`
     );
-    // dedupe if we ran twice same day — keep only first insert per run, user can edit
+
   } else {
     md = md.replace(
       /## Kalau List juga gak muncul/,

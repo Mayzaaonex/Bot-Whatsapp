@@ -1,10 +1,4 @@
-/**
- * qwen edit
- * Creator: IzzXd
- * Base: https://prithivmlmods-qwen-image-edit-object-manipulator.hf.space
- * Saluran: https://whatsapp.com/channel/0029VbCv97v9Bb5tC5cZFl0K
- * Note: JANGAN HAPUS WM, HARGAIN YANG SCRAPE
- */
+
 
 const fs = require('fs')
 const path = require('path')
@@ -23,9 +17,9 @@ const WM = {
 
 const EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }
 
-// ====== GANTI PROMPT DI SINI ======
+
 const PROMPT = 'tolong rubah warna kulitnyua menjadi hitam, apapun warna kulitnya rubah menjadi hitam aja, jangan rubah a;papun selain kulit pada gambar tersebut!.'
-// ===================================
+
 
 let proxies = []
 let proxyIndex = 0

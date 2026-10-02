@@ -18,9 +18,7 @@ const logger = pino({ level: "silent" });
 ensureTempDir();
 console.log("📁 Folder file sementara:", TEMP_DIR);
 
-// ═══════════════════════════════════════════════════════════════════
-//  BOT WHATSAPP (Baileys)
-// ═══════════════════════════════════════════════════════════════════
+
 
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState("auth_info");
@@ -58,8 +56,7 @@ async function startBot() {
     if (type !== "notify") return;
     for (const msg of messages) {
       if (msg.key.fromMe) continue;
-      // Grup yang belum di-whitelist: jangan di-autoread juga (biar bot
-      // bener-bener gak keliatan aktif di sana).
+
       const jid = msg.key.remoteJid;
       if (jid?.endsWith("@g.us") && !config.isGroupAllowed(jid)) continue;
       try {
@@ -124,16 +121,13 @@ async function startBot() {
     }
   });
 
-  // ── Auto-remove whitelist kalau bot di-kick / keluar dari grup ──────
-  // Baileys emit "group-participants.update" saat ada perubahan peserta.
-  // Kalau action-nya "remove" dan salah satu JID yang di-remove adalah
-  // JID bot sendiri, artinya bot di-kick → langsung hapus dari whitelist.
+
   sock.ev.on("group-participants.update", ({ id, participants, action }) => {
     if (action !== "remove") return;
     const botJid = sock.user?.id;
     if (!botJid) return;
 
-    // Normalisasi device suffix tanpa mengubah tipe JID (@lid/@s.whatsapp.net).
+
     const botBase = botJid.replace(/:\d+(?=@)/, "");
     const kicked = participants.some((p) => p.replace(/:\d+(?=@)/, "") === botBase);
 
