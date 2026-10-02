@@ -1,0 +1,9 @@
+auth_info/
+node_modules/
+rule.md
+npm-debug.log*
+.env
+.DS_Store
+database/bot_config.json
+temp/
+*.tmp

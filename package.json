@@ -1,0 +1,22 @@
+{
+  "name": "Bot WhatsApp",
+  "version": "1.2.2",
+  "description": "BOT WHATSAPP MULTI DEVICE",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node main.js",
+    "bump": "node scripts/bump-version.js patch",
+    "bump:minor": "node scripts/bump-version.js minor",
+    "bump:major": "node scripts/bump-version.js major"
+  },
+  "dependencies": {
+    "@itsliaaa/baileys": "^0.3.18-final",
+    "axios": "^1.20.0",
+    "form-data": "^4.0.6",
+    "pino": "^9.4.0",
+    "qrcode-terminal": "^0.12.0",
+    "sharp": "^0.35.4"
+  }
+}
