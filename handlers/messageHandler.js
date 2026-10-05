@@ -1421,12 +1421,11 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
         const { items, caption, author, stats } = await dl.download(platform, target.url);
         let sentCaption = '';
         if (platform === "instagram") {
-          const likes = stats?.likes ?? '';
-          const comments = stats?.comments ?? '';
-          const shares = stats?.shares ?? '';
-          const cap = caption ?? '';
-          const auth = author ?? '';
-          sentCaption = `┏━ RESULT\n┣ Author  : ${auth}\n┣ Caption : ${cap}\n┣ ❤️ Likes   : ${likes}\n┣ 💬 Komen   : ${comments}\n┣ 📤 Share   : ${shares}\n┗`;
+          const likes = stats?.likes ?? '-';
+          const comments = stats?.comments ?? '-';
+          const cap = caption ?? '-';
+          const auth = author ?? '-';
+          sentCaption = `┏━ RESULT\n┣ Author : ${auth}\n┣ ❤️ Likes  : ${likes}\n┣ 💬 Komen  : ${comments}\n┗━\n\n${cap}`;
         } else if (caption) {
           sentCaption = `📝 ${caption}`;
         }
