@@ -1,6 +1,6 @@
 {
   "name": "Bot WhatsApp",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "BOT WHATSAPP MULTI DEVICE",
   "main": "index.js",
   "type": "commonjs",

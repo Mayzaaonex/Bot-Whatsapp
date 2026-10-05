@@ -627,8 +627,14 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     const { execSync } = require("child_process");
     try {
       const out = execSync("git fetch origin && git reset --hard origin/main && npm install", { encoding: "utf8", timeout: 120000 });
-      await sock.sendMessage(from, { text: "✅ Update selesai (force).\n" + out.slice(0, 3500) + "\n\nRestart bot untuk menerapkan." });
       if (msgKey) await react(sock, msgKey, "✅");
+      let sent = await sock.sendMessage(from, { text: "✅ Update selesai (force).\n" + out.slice(0, 3000) + "\n\n♻️ Restart dalam 5 detik..." });
+      for (let i = 5; i >= 0; i--) {
+        await new Promise(r => setTimeout(r, 1000));
+        const txt = i === 0 ? "♻️ Restarting..." : `♻️ Restart dalam ${i} detik...`;
+        try { await sock.sendMessage(from, { text: txt, edit: sent.key }); } catch { try { sent = await sock.sendMessage(from, { text: txt }); } catch {} }
+      }
+      process.exit(0);
     } catch(e) {
       await sock.sendMessage(from, { text: "❌ Gagal update:\n" + (e.stderr || e.stdout || e.message).slice(0, 3500) });
       if (msgKey) await react(sock, msgKey, "❌");
@@ -1412,8 +1418,18 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       const platform = target.platform;
       try {
         const dl = require("../menusystem/downloader");
-        const { items, caption } = await dl.download(platform, target.url);
-        let sentCaption = caption ? `📝 ${caption}` : "";
+        const { items, caption, author, stats } = await dl.download(platform, target.url);
+        let sentCaption = '';
+        if (platform === "instagram") {
+          const likes = stats?.likes ?? '';
+          const comments = stats?.comments ?? '';
+          const shares = stats?.shares ?? '';
+          const cap = caption ?? '';
+          const auth = author ?? '';
+          sentCaption = `┏━ RESULT\n┣ Author  : ${auth}\n┣ Caption : ${cap}\n┣ ❤️ Likes   : ${likes}\n┣ 💬 Komen   : ${comments}\n┣ 📤 Share   : ${shares}\n┗`;
+        } else if (caption) {
+          sentCaption = `📝 ${caption}`;
+        }
         for (let idx = 0; idx < items.length; idx++) {
           const item = items[idx];
           const captionOpt = idx === 0 && sentCaption ? sentCaption : undefined;

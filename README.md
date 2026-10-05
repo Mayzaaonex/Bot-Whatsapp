@@ -4,7 +4,7 @@ Bot WhatsApp berbasis Node.js + [`@itsliaaa/baileys`](https://github.com/itsliaa
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Baileys](https://img.shields.io/badge/Baileys-community%20fork-blue)](https://github.com/itsliaaa/baileys)
-[![Version](https://img.shields.io/badge/version-1.2.10-orange)](./package.json)
+[![Version](https://img.shields.io/badge/version-1.2.11-orange)](./package.json)
 [![License](https://img.shields.io/badge/license-ISC-lightgrey)](#)
 
 ## Daftar Isi
@@ -172,6 +172,7 @@ Project ini memakai **`@itsliaaa/baileys`** — fork komunitas (bukan resmi Whis
 
 | Versi | Tanggal | Catatan |
 |-------|---------|---------|
+| 1.2.11 | 2026-10-05 | IG box caption + update countdown |
 | 1.2.10 | 2026-10-05 | IG download_url priority |
 | 1.2.9 | 2026-10-05 | force update (reset --hard) |
 | 1.2.8 | 2026-10-05 | fix checkupdate changelog (1 terbaru) |

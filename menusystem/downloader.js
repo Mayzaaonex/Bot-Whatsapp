@@ -31,7 +31,7 @@ function normalize(platform, response) {
   else if (platform === "douyin") add(result.download_link, "video");
   else if (platform === "ytmp3" || platform === "ytmp4") add(response.downloadUrl, platform === "ytmp3" ? "audio" : "video");
   if (!items.length) throw new Error("Plugin tidak mengembalikan URL media.");
-  return { items, caption: result.caption || result.title || result.metadata?.title || "" };
+  return { items, caption: result.caption || result.title || result.metadata?.title || "", author: result.author?.username, stats: result.stats };
 }
 async function runPlugin(platform, url) {
   const plugin = PLUGINS[platform];
