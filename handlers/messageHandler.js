@@ -626,11 +626,11 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     if (!(await isOwner(sock, sender))) { if (msgKey) await react(sock, msgKey, ""); return; }
     const { execSync } = require("child_process");
     try {
-      const out = execSync("git pull && npm install", { encoding: "utf8", timeout: 60000 });
-      await sock.sendMessage(from, { text: "✅ Update selesai.\n" + out + "\n\nRestart bot untuk menerapkan." });
+      const out = execSync("git fetch origin && git reset --hard origin/main && npm install", { encoding: "utf8", timeout: 120000 });
+      await sock.sendMessage(from, { text: "✅ Update selesai (force).\n" + out.slice(0, 3500) + "\n\nRestart bot untuk menerapkan." });
       if (msgKey) await react(sock, msgKey, "✅");
     } catch(e) {
-      await sock.sendMessage(from, { text: "❌ Gagal update:\n" + (e.stderr || e.message) });
+      await sock.sendMessage(from, { text: "❌ Gagal update:\n" + (e.stderr || e.stdout || e.message).slice(0, 3500) });
       if (msgKey) await react(sock, msgKey, "❌");
     }
     return;
