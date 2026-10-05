@@ -1,10 +1,9 @@
-function getVersion() {
-  try {
-    return require("../package.json").version;
-  } catch {
-    return "unknown";
-  }
-}
+const { getVersion } = require("./version");
+
+const commands = [
+  { command: "berita", description: "Lihat berita terbaru hari ini", usage: ".berita <kategori>", example: ".berita teknologi" },
+  { command: "cuaca", description: "Cek cuaca di suatu kota", usage: ".cuaca <nama kota>", example: ".cuaca Kediri" },
+];
 
 module.exports = {
   key: "berita",
@@ -20,18 +19,5 @@ module.exports = {
       `> Mayzaabot-v${version}`
     );
   },
-  commands: [
-    {
-      command: "berita",
-      description: "Lihat berita terbaru hari ini",
-      usage: ".berita <kategori>",
-      example: ".berita teknologi",
-    },
-    {
-      command: "cuaca",
-      description: "Cek cuaca di suatu kota",
-      usage: ".cuaca <nama kota>",
-      example: ".cuaca Kediri",
-    },
-  ],
+  commands,
 };

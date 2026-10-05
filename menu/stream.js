@@ -1,10 +1,10 @@
-function getVersion() {
-  try {
-    return require("../package.json").version;
-  } catch {
-    return "unknown";
-  }
-}
+const { getVersion } = require("./version");
+
+const commands = [
+  { command: "play", description: "Play musik dari YouTube, dikirim jadi audio", usage: ".play <judul lagu>", example: ".play Payung Teduh - Akad" },
+  { command: "playvid", description: "Play video dari YouTube", usage: ".playvid <judul video>", example: ".playvid tutorial masak nasi goreng" },
+  { command: "lirik", description: "Cari lirik lagu", usage: ".lirik <judul lagu>", example: ".lirik Akad - Payung Teduh" },
+];
 
 module.exports = {
   key: "stream",
@@ -21,24 +21,5 @@ module.exports = {
       `> Mayzaabot-v${version}`
     );
   },
-  commands: [
-    {
-      command: "play",
-      description: "Play musik dari YouTube, dikirim jadi audio",
-      usage: ".play <judul lagu>",
-      example: ".play Payung Teduh - Akad",
-    },
-    {
-      command: "playvid",
-      description: "Play video dari YouTube",
-      usage: ".playvid <judul video>",
-      example: ".playvid tutorial masak nasi goreng",
-    },
-    {
-      command: "lirik",
-      description: "Cari lirik lagu",
-      usage: ".lirik <judul lagu>",
-      example: ".lirik Akad - Payung Teduh",
-    },
-  ],
+  commands,
 };

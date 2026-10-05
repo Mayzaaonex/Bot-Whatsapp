@@ -22,6 +22,8 @@ const aiProviders = require("../menusystem/ai");
 const { makeBrat, makeBratVid } = require("../menusystem/maker");
 const aiImage = require("../menusystem/aiimage");
 const fs = require("fs");
+const { addMetaAI } = require("../_plugins/Owner/addmeta");
+const { swgc } = require("../_plugins/Owner/swgc");
 
 const UA =
   "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36";
@@ -49,11 +51,6 @@ const AI_HANDLERS = {
   deepseekpro: aiProviders.deepseekV4Pro,
   gemini31pro: aiProviders.gemini31Pro,
 };
-
-
-const META_AI_JID = "867051314767696@bot";
-
-
 
 function toMentionJid(sender) {
   if (sender.endsWith("@lid")) {
@@ -101,7 +98,7 @@ function isAllowed(jid) {
 }
 
 
-const OWNER_ANY_GROUP_COMMANDS = ["idgc", "setgc", "delgc", "listgc", "listgrup", "listgroup", "grouplist", "outgc", "joingc"];
+const OWNER_ANY_GROUP_COMMANDS = ["idgc", "setgc", "delgc", "listgc", "listgrup", "listgroup", "grouplist", "outgc", "joingc", "swgc"];
 
 
 function normalizeGroupJid(input) {
@@ -139,9 +136,18 @@ async function react(sock, msgKey, emoji) {
       react: { text: emoji, key: msgKey },
     });
   } catch (e) {
-
     console.error("⚠️  Gagal kirim reaction:", e.message);
   }
+}
+function getQuoted(msg) {
+  return getQuoted(msg);
+}
+function getQuotedCtx(msg) {
+  return getQuotedCtx(msg);
+}
+function quotedDlMsg(from, quotedMsg, msg) {
+  const c = getQuotedCtx(msg);
+  return { key: { remoteJid: from, id: c?.stanzaId, participant: c?.participant }, message: quotedMsg };
 }
 
 
@@ -164,6 +170,10 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
   const group = isGroup(from);
   const p = config.prefix;
+  const reply = async (text, emoji) => { await sock.sendMessage(from, { text }); if (msgKey && emoji) await react(sock, msgKey, emoji); };
+  const replyErr = async (text) => reply(text, "❌");
+  const fail = async (text) => { await sock.sendMessage(from, { text }); if (msgKey) await react(sock, msgKey, "❌"); };
+  const ownerOnly = async () => { if (await isOwner(sock, sender)) return false; await fail("⛔ Command ini khusus owner."); return true; };
 
 
   if (OWNER_ANY_GROUP_COMMANDS.includes(command)) {
@@ -538,20 +548,20 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       return;
     }
 
-    try {
-      await sock.groupParticipantsUpdate(from, [META_AI_JID], "add");
-      await sock.sendMessage(from, { text: "✅ Sukses add Meta AI ke grup." });
-      if (msgKey) await react(sock, msgKey, "✅");
-    } catch (e) {
-      console.error("❌ Gagal addmeta:", e);
-      await sock.sendMessage(from, {
-        text: `❌ Gagal nambahin Meta AI ke grup.\n${e?.message || e}`,
-      });
-      if (msgKey) await react(sock, msgKey, "❌");
+    {
+      const res = await addMetaAI(sock, from);
+      await sock.sendMessage(from, { text: res.text });
+      if (msgKey) await react(sock, msgKey, res.success ? "✅" : "❌");
     }
     return;
   }
 
+  if (command === "swgc") {
+    const res = await swgc(sock, from, sender, args, config, isOwner);
+    await sock.sendMessage(from, { text: res.text });
+    if (msgKey) await react(sock, msgKey, res.success ? "✅" : "❌");
+    return;
+  }
 
   if (command === "useprofile") {
     if (!(await isOwner(sock, sender))) {
@@ -666,9 +676,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     }
 
 
-    const quotedMsg =
-      msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
-      msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
+    const quotedMsg = getQuoted(msg);
     const directSticker = msg?.message?.stickerMessage;
     const quotedSticker = quotedMsg?.stickerMessage;
 
@@ -716,11 +724,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
   }
 
   if (command === "setprefix") {
-    if (!(await isOwner(sock, sender))) {
-      await sock.sendMessage(from, { text: "⛔ Command ini khusus owner." });
-      if (msgKey) await react(sock, msgKey, "❌");
-      return;
-    }
+    if (await ownerOnly()) return;
     if (!args || args.trim().length === 0) {
       await sock.sendMessage(from, {
         text: `❌ Sebutin prefix barunya dong.\nContoh: *${p}setprefix !*`,
@@ -743,8 +747,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
 
   if (command === "getprofile" || command === "getpp" || command === "getpfp") {
-    const ctx = msg?.message?.extendedTextMessage?.contextInfo ||
-                msg?.message?.interactiveResponseMessage?.contextInfo;
+    const ctx = getQuotedCtx(msg);
     const tagged = ctx?.mentionedJid || [];
     const target = tagged.find(Boolean);
     if (!target) {
@@ -766,11 +769,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
   }
 
   if (command === "addwl") {
-    if (!(await isOwner(sock, sender))) {
-      await sock.sendMessage(from, { text: "⛔ Command ini khusus owner." });
-      if (msgKey) await react(sock, msgKey, "❌");
-      return;
-    }
+    if (await ownerOnly()) return;
     if (!args) {
       await sock.sendMessage(from, {
         text: `❌ Tulis nomor yang mau di-whitelist.\nContoh: *${p}addwl 628123456789*`,
@@ -790,11 +789,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
   }
 
   if (command === "removewl") {
-    if (!(await isOwner(sock, sender))) {
-      await sock.sendMessage(from, { text: "⛔ Command ini khusus owner." });
-      if (msgKey) await react(sock, msgKey, "❌");
-      return;
-    }
+    if (await ownerOnly()) return;
     if (!args) {
       await sock.sendMessage(from, {
         text: `❌ Tulis nomor yang mau dihapus dari whitelist.\nContoh: *${p}removewl 628123456789*`,
@@ -813,11 +808,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
   }
 
   if (command === "listwl") {
-    if (!(await isOwner(sock, sender))) {
-      await sock.sendMessage(from, { text: "⛔ Command ini khusus owner." });
-      if (msgKey) await react(sock, msgKey, "❌");
-      return;
-    }
+    if (await ownerOnly()) return;
     const wl = config.whitelist;
     if (wl.length === 0) {
       await sock.sendMessage(from, {
@@ -835,11 +826,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
 
   if (command === "getjid" || command === "encode") {
-    if (!(await isOwner(sock, sender))) {
-      await sock.sendMessage(from, { text: "⛔ Command ini khusus owner." });
-      if (msgKey) await react(sock, msgKey, "❌");
-      return;
-    }
+    if (await ownerOnly()) return;
     if (!args) {
       await sock.sendMessage(from, {
         text: `❌ Tulis nomornya.\nContoh: *${p}getjid 089531367146*`,
@@ -862,11 +849,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
 
   if (command === "getnumber" || command === "decode") {
-    if (!(await isOwner(sock, sender))) {
-      await sock.sendMessage(from, { text: "⛔ Command ini khusus owner." });
-      if (msgKey) await react(sock, msgKey, "❌");
-      return;
-    }
+    if (await ownerOnly()) return;
 
     const quotedParticipant = quotedInfo?.participant;
     const targetJid = args?.trim() || quotedParticipant;
@@ -964,8 +947,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
   if (["s", "stiker", "sticker"].includes(command)) {
 
-    const quotedMsg = msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage
-                   || msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
+    const quotedMsg = getQuoted(msg);
     const directImg = msg?.message?.imageMessage;
     const directVid = msg?.message?.videoMessage;
 
@@ -1056,8 +1038,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
 
   if (["toimg", "toimage"].includes(command)) {
-    const quotedMsg = msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage
-                   || msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
+    const quotedMsg = getQuoted(msg);
     const directSticker = msg?.message?.stickerMessage;
     const quotedSticker = quotedMsg?.stickerMessage;
 
@@ -1113,8 +1094,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
 
   if (["rvo", "readonce", "viewonce"].includes(command)) {
-    const quotedMsg = msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage
-                   || msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
+    const quotedMsg = getQuoted(msg);
 
 
     function unwrapViewOnce(container) {
@@ -1210,9 +1190,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
   if (["removebg", "tosketch", "hitamkan", "image2prompt", "img2img", "topixel", "enhancer"].includes(command)) {
 
-    const quotedMsg =
-      msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
-      msg?.message?.interactiveResponseMessage?.contextInfo?.quotedMessage;
+    const quotedMsg = getQuoted(msg);
     const directImg = msg?.message?.imageMessage;
     const quotedImg = quotedMsg?.imageMessage;
 

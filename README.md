@@ -172,5 +172,8 @@ Project ini memakai **`@itsliaaa/baileys`** — fork komunitas (bukan resmi Whis
 
 | Versi | Tanggal | Catatan |
 |-------|---------|---------|
+| 1.2.3 | 2026-10-05 | bump patch |
+| Versi | Tanggal | Catatan |
+|-------|---------|---------|
 | 1.2.2 | 2026-09-29 | Hapus `env/.env.versions`, versi now dari `package.json`; bump script hanya sync `package.json` + README; perbaiki README |
 | 1.2.1 | 2026-09-29 | bump patch |

@@ -34,7 +34,12 @@ module.exports = {
       `• *${p}getjid <nomor>*\n` +
       `• *${p}getnumber <jid>*\n` +
       `• *${p}addmeta*\n\n` +
-      `*Bot Version:*\n` +
+            `• *${p}swgc | <pesan>* (broadcast grup opt-in)
+` +
+      `• *${p}swgc all | <pesan>* (broadcast semua grup)
+
+` +
+`*Bot Version:*\n` +
       `> Mayzaabot-v${version}`
     );
   },
@@ -55,6 +60,7 @@ module.exports = {
     { command: "listgc", description: "Lihat semua grup yang diikuti bot + nama, ID, total member (owner only)", usage: ".listgc", example: ".listgc" },
     { command: "getjid", description: "Encode nomor HP jadi JID WhatsApp (owner only)", usage: ".getjid <nomor>", example: ".getjid 089531367146" },
     { command: "getnumber", description: "Decode JID/@lid jadi nomor HP asli (owner only)", usage: ".getnumber <jid>", example: ".getnumber 129111632691455@lid" },
+    { command: "swgc", description: "Broadcast pesan ke member grup yang opt-in (owner only)", usage: ".swgc | <pesan> atau .swgc all | <pesan>", example: ".swgc all | Halo semua" },
     { command: "addmeta", description: "Invite Meta AI ke grup ini (owner only, grup only)", usage: ".addmeta", example: ".addmeta" },
   ],
 };

@@ -1,10 +1,10 @@
-function getVersion() {
-  try {
-    return require("../package.json").version;
-  } catch {
-    return "unknown";
-  }
-}
+const { getVersion } = require("./version");
+
+const commands = [
+  { command: "meme", description: "Kirim meme random", usage: ".meme", example: ".meme" },
+  { command: "quote", description: "Kirim quote motivasi random", usage: ".quote", example: ".quote" },
+  { command: "waifu", description: "Kirim gambar waifu random", usage: ".waifu", example: ".waifu" },
+];
 
 module.exports = {
   key: "random",
@@ -21,24 +21,5 @@ module.exports = {
       `> Mayzaabot-v${version}`
     );
   },
-  commands: [
-    {
-      command: "meme",
-      description: "Kirim meme random",
-      usage: ".meme",
-      example: ".meme",
-    },
-    {
-      command: "quote",
-      description: "Kirim quote motivasi random",
-      usage: ".quote",
-      example: ".quote",
-    },
-    {
-      command: "waifu",
-      description: "Kirim gambar waifu random",
-      usage: ".waifu",
-      example: ".waifu",
-    },
-  ],
+  commands,
 };

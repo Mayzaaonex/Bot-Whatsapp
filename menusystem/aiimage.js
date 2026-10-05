@@ -2,7 +2,7 @@ const axios = require("axios");
 const FormData = require("form-data");
 const fs = require("fs");
 const path = require("path");
-const { execFile } = require("child_process");
+const { runNode } = require("../systemconverter/pluginRunner");
 const { randomBytes } = require("crypto");
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
 const MAYZAA_BASE = "https://api.mayzaa.my.id/mayzaa";
@@ -33,25 +33,13 @@ async function downloadImageBuffer(url) {
   const res = await axios.get(url, { responseType: "arraybuffer", headers: { "User-Agent": UA }, timeout: 30000 });
   return Buffer.from(res.data);
 }
-function execPlugin(pluginFile, tmpInputPath, extraArgs = []) {
+async function execPlugin(pluginFile, tmpInputPath, extraArgs = []) {
   const pluginPath = path.join(PLUGINS_DIR, pluginFile);
   if (!fs.existsSync(pluginPath)) throw new Error(`Plugin tidak ditemukan: ${pluginFile}`);
-  return new Promise((resolve, reject) => {
-    const args = [pluginPath, tmpInputPath, ...extraArgs];
-    execFile("node", args, { timeout: 300000, maxBuffer: 20 * 1024 * 1024 }, (err, stdout, stderr) => {
-      if (err && !stdout) return reject(new Error(stderr || err.message));
-      let json = null;
-      try { json = JSON.parse(String(stdout).trim()); } catch {}
-      if (!json) {
-        const matches = String(stdout).match(/\{[\s\S]*\}/g);
-        if (matches) for (let i = matches.length - 1; i >= 0; i--) try { const p = JSON.parse(matches[i]); if (p && ("status" in p || "result_path" in p)) { json = p; break; } } catch {}
-      }
-      if (!json) return reject(new Error(`Plugin output tidak valid: ${String(stdout).slice(0, 800) || stderr?.slice(0, 800) || err?.message || "unknown"}`));
-      if (json.status === false) return reject(new Error(json.error || json.message || "Plugin gagal."));
-      if (!json.result_path) return reject(new Error("Plugin sukses tapi result_path kosong."));
-      resolve(json);
-    });
-  });
+  const { json } = await runNode(pluginPath, [tmpInputPath, ...extraArgs], { timeout: 300000, maxBuffer: 20 * 1024 * 1024 });
+  if (json.status === false) throw new Error(json.error || json.message || "Plugin gagal.");
+  if (!json.result_path) throw new Error("Plugin sukses tapi result_path kosong.");
+  return json;
 }
 function writeTmpInput(buffer) {
   const { TEMP_DIR, ensureTempDir } = require("../systemconverter/tempDir");

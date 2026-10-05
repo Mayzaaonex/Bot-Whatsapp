@@ -56,23 +56,12 @@ async function startBot() {
     if (type !== "notify") return;
     for (const msg of messages) {
       if (msg.key.fromMe) continue;
-
       const jid = msg.key.remoteJid;
       if (jid?.endsWith("@g.us") && !config.isGroupAllowed(jid)) continue;
-      try {
-        await sock.readMessages([msg.key]);
-      } catch (e) {
-        console.error("⚠️  Autoread gagal:", e.message);
-      }
+      try { await sock.readMessages([msg.key]); } catch (e) { console.error("⚠️  Autoread gagal:", e.message); }
     }
-  });
-
-  sock.ev.on("messages.upsert", async ({ messages, type }) => {
-    if (type !== "notify") return;
-
     const msg = messages[0];
     if (!msg.message || msg.key.fromMe) return;
-
     const from = msg.key.remoteJid;
     const sender = msg.key.participant || from;
     const listReplyId =
