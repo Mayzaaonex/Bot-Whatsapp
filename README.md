@@ -4,7 +4,7 @@ Bot WhatsApp berbasis Node.js + [`@itsliaaa/baileys`](https://github.com/itsliaa
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Baileys](https://img.shields.io/badge/Baileys-community%20fork-blue)](https://github.com/itsliaaa/baileys)
-[![Version](https://img.shields.io/badge/version-1.2.2-orange)](./package.json)
+[![Version](https://img.shields.io/badge/version-1.2.8-orange)](./package.json)
 [![License](https://img.shields.io/badge/license-ISC-lightgrey)](#)
 
 ## Daftar Isi
@@ -172,20 +172,11 @@ Project ini memakai **`@itsliaaa/baileys`** — fork komunitas (bukan resmi Whis
 
 | Versi | Tanggal | Catatan |
 |-------|---------|---------|
-| 1.2.7 | 2026-10-05 | bump patch |
-| Versi | Tanggal | Catatan |
-|-------|---------|---------|
-| 1.2.6 | 2026-10-05 | bump patch |
-| Versi | Tanggal | Catatan |
-|-------|---------|---------|
+| 1.2.8 | 2026-10-05 | fix checkupdate changelog (1 terbaru) |
+| 1.2.7 | 2026-10-05 | public script command |
+| 1.2.6 | 2026-10-05 | ping public + checkupdate/version/update owner, run via main.js |
 | 1.2.5 | 2026-10-05 | bump patch |
-| Versi | Tanggal | Catatan |
-|-------|---------|---------|
 | 1.2.4 | 2026-10-05 | bump patch |
-| Versi | Tanggal | Catatan |
-|-------|---------|---------|
-| 1.2.3 | 2026-10-05 | bump patch |
-| Versi | Tanggal | Catatan |
-|-------|---------|---------|
+| 1.2.3 | 2026-10-05 | add addmeta + swgc |
 | 1.2.2 | 2026-09-29 | Hapus `env/.env.versions`, versi now dari `package.json`; bump script hanya sync `package.json` + README; perbaiki README |
 | 1.2.1 | 2026-09-29 | bump patch |

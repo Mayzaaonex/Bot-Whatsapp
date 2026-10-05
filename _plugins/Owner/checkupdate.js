@@ -13,22 +13,25 @@ async function fetchText(url) {
   return res.text();
 }
 
-function extractChangelog(readme) {
+function extractLatestChange(readme) {
+  // ambil 1 baris changelog terbaru (bukan header/separator)
   const lines = readme.split(/\r?\n/);
-  const chIdx = lines.findIndex(l => l.trim() === "## Changelog");
-  if (chIdx === -1) return "";
-  let out = [];
-  let inTable = false;
-  for (let i = chIdx; i < lines.length; i++) {
-    const l = lines[i];
-    if (l.startsWith("|") && l.includes("|")) {
-      if (!inTable && l.includes("Versi")) { inTable = true; continue; }
-      if (l.includes("---")) continue;
-      out.push(l);
-      if (out.length >= 5) break;
-    } else if (inTable && out.length > 0) break;
+  const idx = lines.findIndex(l => l.trim() === "## Changelog");
+  if (idx === -1) return "";
+  for (let i = idx + 1; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (!l || l.includes("Versi") || l.includes("---")) continue;
+    if (!l.startsWith("|")) continue;
+    // | 1.2.7 | 2026-10-05 | catatan |
+    const cols = l.split("|").map(s => s.trim()).filter(Boolean);
+    if (cols.length >= 3) {
+      const ver = cols[0];
+      const note = cols[2];
+      return `v${ver} — ${note}`;
+    }
+    return l.replace(/\|/g, " ").trim();
   }
-  return out.join("\n");
+  return "";
 }
 
 function compareVersion(a, b) {
@@ -51,17 +54,17 @@ async function checkUpdate() {
     const remoteVer = remotePkg.version || "unknown";
     const cmp = compareVersion(localVer, remoteVer);
     if (cmp >= 0) {
-      return { success: true, text: "\u2705 Bot sudah up to date!\n\n*Versi lokal:* v" + localVer + "\n*Versi remote:* v" + remoteVer };
+      return { success: true, text: "\u2705 Bot sudah up to date!\n\n*Versi:* v" + localVer };
     }
-    let changelog = "";
+    let change = "";
     try {
       const readme = await fetchText(README_URL);
-      changelog = extractChangelog(readme);
+      change = extractLatestChange(readme);
     } catch {}
     let txt = "\uD83D\uDD04 *Update Tersedia!*\n\n";
-    txt += "*Lokal:* v" + localVer + " \u2192 *Remote:* v" + remoteVer + "\n\n";
-    if (changelog) txt += "*Changelog (5 terbaru):*\n" + changelog + "\n\n";
-    txt += "Ketik *.update* untuk update otomatis.";
+    txt += "*Lokal:* v" + localVer + " \u2192 *Remote:* v" + remoteVer + "\n";
+    if (change) txt += "\n> " + change + "\n";
+    txt += "\nKetik *.update* untuk update otomatis.";
     return { success: false, text: txt };
   } catch(e) {
     return { success: false, text: "\u274C Gagal cek update: " + e.message };

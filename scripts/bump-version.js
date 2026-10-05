@@ -23,23 +23,18 @@ pkg.version = next;
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 console.log(`package.json -> ${next}`);
 
-
 try {
   let md = fs.readFileSync(readmePath, "utf8");
 
-  md = md.replace(/(Versi:\s*)[\d.]+/, `$1${next}`);
+  // badge
+  md = md.replace(/version-[\d.]+-orange/, `version-${next}-orange`);
 
   const today = new Date().toISOString().slice(0,10);
+  // insert 1 row after header "| Versi |" — single header, no dup
   if (md.includes("## Changelog")) {
     md = md.replace(
-      /## Changelog\s*\n/,
-      `## Changelog\n\n| Versi | Tanggal | Catatan |\n|-------|---------|---------|\n| ${next} | ${today} | bump ${type} |\n`
-    );
-
-  } else {
-    md = md.replace(
-      /## Kalau List juga gak muncul/,
-      `## Changelog\n\n| Versi | Tanggal | Catatan |\n|-------|---------|---------|\n| ${next} | ${today} | bump ${type} |\n\n## Kalau List juga gak muncul`
+      /## Changelog\s*\n\s*\| Versi \| Tanggal \| Catatan \|\s*\n\s*\|[^\\n]*\|/,
+      `## Changelog\n\n| Versi | Tanggal | Catatan |\n|-------|---------|---------|\n| ${next} | ${today} | bump ${type} |`
     );
   }
   fs.writeFileSync(readmePath, md);
