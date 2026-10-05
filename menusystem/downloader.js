@@ -25,7 +25,7 @@ function normalize(platform, response) {
   const add = (url, type) => { url = asHttpUrl(url); if (url) items.push({ url, type }); };
   if (platform === "tiktok") add(result.video_url, "video");
   else if (platform === "facebook") { const downloads = Array.isArray(result.downloads) ? result.downloads : []; const preferred = downloads.find((item) => /hd|high/i.test(item.quality || item.type || "")) || downloads[0]; add(preferred?.url || result.video_url, "video"); }
-  else if (platform === "instagram") { for (const media of result.media || []) add(media.url, String(media.type).toLowerCase().includes("image") ? "image" : "video"); if (!items.length) add(result.download_url || result.video || result.image, result.image && !result.video ? "image" : "video"); }
+  else if (platform === "instagram") { const u = result.download_url || result.video || result.image; if (u) add(u, result.image && !result.video ? "image" : "video"); if (!items.length) for (const media of result.media || []) add(media.url, String(media.type).toLowerCase().includes("image") ? "image" : "video"); }
   else if (platform === "spotify") add(result.download_url, "audio");
   else if (platform === "pinterest") { for (const media of result.media || []) add(media.url, String(media.type).toLowerCase().includes("image") ? "image" : "video"); }
   else if (platform === "douyin") add(result.download_link, "video");
