@@ -172,6 +172,9 @@ Project ini memakai **`@itsliaaa/baileys`** — fork komunitas (bukan resmi Whis
 
 | Versi | Tanggal | Catatan |
 |-------|---------|---------|
+| 1.2.7 | 2026-10-05 | bump patch |
+| Versi | Tanggal | Catatan |
+|-------|---------|---------|
 | 1.2.6 | 2026-10-05 | bump patch |
 | Versi | Tanggal | Catatan |
 |-------|---------|---------|

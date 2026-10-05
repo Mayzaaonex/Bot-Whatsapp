@@ -178,6 +178,25 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
   const ownerOnly = async () => { if (await isOwner(sock, sender)) return false; await fail("⛔ Command ini khusus owner."); return true; };
 
 
+  // public: script — link repo (semua orang, grup/pc)
+  if (command === "script" || command === "sc" || command === "repo") {
+    const ver = (() => { try { return require("../package.json").version; } catch { return "?"; } })();
+    const repo = "https://github.com/Mayzaaonex/Bot-Whatsapp";
+    const text =
+      `╭─ *SCRIPT BOT* ─╮\n` +
+      `│ 🤖 *Mayzaa Bot* v${ver}\n` +
+      `│ 📦 *Base:* Baileys @itsliaaa/baileys\n` +
+      `│ 🔗 *Repo:* ${repo}\n` +
+      `│ ⭐ *Star & Fork* biar semangat update!\n` +
+      `│ 🚀 *Run:* \`npm install && node main.js\`\n` +
+      `│ 📝 *Changelog:* ${repo}/blob/main/README.md\n` +
+      `╰───────────────╯\n\n` +
+      `> run: node main.js (watcher auto-restart)`;
+    if (msgKey) await react(sock, msgKey, "\u2728");
+    await sock.sendMessage(from, { text });
+    return;
+  }
+
   // public: ping — bisa dipakai semua orang (tanpa whitelist/owner)
   if (command === "ping") {
     try {
