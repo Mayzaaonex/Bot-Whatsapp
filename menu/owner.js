@@ -10,36 +10,36 @@ function getVersion() {
 
 module.exports = {
   key: "owner",
-  emoji: "👑",
+  emoji: "\uD83D\uDC51",
   title: "Owner",
   description: "",
   get directText() {
     const p = config.prefix;
     const version = getVersion();
     return (
-      "👑 *Owner Commands*\n\n" +
-      `• *${p}setprefix <simbol>*\n` +
-      `• *${p}setnick <nama>*\n` +
-      `• *${p}useprofile*\n` +
-      `• *${p}usebanner*\n` +
-      `• *${p}addwl <nomor>*\n` +
-      `• *${p}removewl <nomor>*\n` +
-      `• *${p}listwl*\n` +
-      `• *${p}idgc*\n` +
-      `• *${p}setgc <idgc>*\n` +
-      `• *${p}delgc <idgc>*\n` +
-      `• *${p}outgc <idgc>*\n` +
-      `• *${p}joingc <link>*\n` +
-      `• *${p}listgc*\n` +
-      `• *${p}getjid <nomor>*\n` +
-      `• *${p}getnumber <jid>*\n` +
-      `• *${p}addmeta*\n\n` +
-            `• *${p}swgc | <pesan>* (broadcast grup opt-in)
-` +
-      `• *${p}swgc all | <pesan>* (broadcast semua grup)
-
-` +
-`*Bot Version:*\n` +
+      "\uD83D\uDC51 *Owner Commands*\n\n" +
+      `\u2022 *${p}setprefix <simbol>*\n` +
+      `\u2022 *${p}setnick <nama>*\n` +
+      `\u2022 *${p}useprofile*\n` +
+      `\u2022 *${p}usebanner*\n` +
+      `\u2022 *${p}addwl <nomor>*\n` +
+      `\u2022 *${p}removewl <nomor>*\n` +
+      `\u2022 *${p}listwl*\n` +
+      `\u2022 *${p}idgc*\n` +
+      `\u2022 *${p}setgc <idgc>*\n` +
+      `\u2022 *${p}delgc <idgc>*\n` +
+      `\u2022 *${p}outgc <idgc>*\n` +
+      `\u2022 *${p}joingc <link>*\n` +
+      `\u2022 *${p}listgc*\n` +
+      `\u2022 *${p}getjid <nomor>*\n` +
+      `\u2022 *${p}getnumber <jid>*\n` +
+      `\u2022 *${p}addmeta*\n` +
+      `\u2022 *${p}swgc | <pesan>* (broadcast grup opt-in)\n` +
+      `\u2022 *${p}swgc all | <pesan>* (broadcast semua grup)\n` +
+      `\u2022 *${p}version* (cek versi lokal)\n` +
+      `\u2022 *${p}checkupdate* (cek versi github & changelog)\n` +
+      `\u2022 *${p}update* (update bot dari github)\n\n` +
+      `*Bot Version:*\n` +
       `> Mayzaabot-v${version}`
     );
   },
@@ -47,8 +47,8 @@ module.exports = {
     { command: "owner", description: "Lihat menu owner (cuma bisa dipake owner)", usage: ".owner", example: ".owner" },
     { command: "setprefix", description: "Ganti prefix bot (owner only)", usage: ".setprefix <simbol>", example: ".setprefix !" },
     { command: "setnick", description: "Ganti nama/nickname bot di WA (owner only)", usage: ".setnick <nama>", example: ".setnick Bot Keren" },
-    { command: "useprofile", description: "Ganti foto profil bot — kirim foto + caption perintah (owner only)", usage: ".useprofile", example: ".useprofile" },
-    { command: "usebanner", description: "Ganti banner WA Business — kirim foto + caption perintah (owner only)", usage: ".usebanner", example: ".usebanner" },
+    { command: "useprofile", description: "Ganti foto profil bot \u2014 kirim foto + caption perintah (owner only)", usage: ".useprofile", example: ".useprofile" },
+    { command: "usebanner", description: "Ganti banner WA Business \u2014 kirim foto + caption perintah (owner only)", usage: ".usebanner", example: ".usebanner" },
     { command: "addwl", description: "Tambah nomor ke whitelist (owner only)", usage: ".addwl <nomor>", example: ".addwl 628123456789" },
     { command: "removewl", description: "Hapus nomor dari whitelist (owner only)", usage: ".removewl <nomor>", example: ".removewl 628123456789" },
     { command: "listwl", description: "Lihat daftar whitelist aktif (owner only)", usage: ".listwl", example: ".listwl" },
@@ -61,6 +61,9 @@ module.exports = {
     { command: "getjid", description: "Encode nomor HP jadi JID WhatsApp (owner only)", usage: ".getjid <nomor>", example: ".getjid 089531367146" },
     { command: "getnumber", description: "Decode JID/@lid jadi nomor HP asli (owner only)", usage: ".getnumber <jid>", example: ".getnumber 129111632691455@lid" },
     { command: "swgc", description: "Broadcast pesan ke member grup yang opt-in (owner only)", usage: ".swgc | <pesan> atau .swgc all | <pesan>", example: ".swgc all | Halo semua" },
+    { command: "version", description: "Cek versi bot lokal (owner only)", usage: ".version", example: ".version" },
+    { command: "checkupdate", description: "Cek versi terbaru di github & changelog (owner only)", usage: ".checkupdate", example: ".checkupdate" },
+    { command: "update", description: "Update bot dari github (git pull + npm install) (owner only)", usage: ".update", example: ".update" },
     { command: "addmeta", description: "Invite Meta AI ke grup ini (owner only, grup only)", usage: ".addmeta", example: ".addmeta" },
   ],
 };

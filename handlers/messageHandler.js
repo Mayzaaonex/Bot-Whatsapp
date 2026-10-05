@@ -24,6 +24,8 @@ const aiImage = require("../menusystem/aiimage");
 const fs = require("fs");
 const { addMetaAI } = require("../_plugins/Owner/addmeta");
 const { swgc } = require("../_plugins/Owner/swgc");
+const { checkUpdate } = require("../_plugins/Owner/checkupdate");
+const { buildPingText } = require("../_plugins/Public/ping");
 
 const UA =
   "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36";
@@ -98,7 +100,7 @@ function isAllowed(jid) {
 }
 
 
-const OWNER_ANY_GROUP_COMMANDS = ["idgc", "setgc", "delgc", "listgc", "listgrup", "listgroup", "grouplist", "outgc", "joingc", "swgc"];
+const OWNER_ANY_GROUP_COMMANDS = ["idgc", "setgc", "delgc", "listgc", "listgrup", "listgroup", "grouplist", "outgc", "joingc", "swgc", "version", "checkupdate", "update"];
 
 
 function normalizeGroupJid(input) {
@@ -175,6 +177,22 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
   const fail = async (text) => { await sock.sendMessage(from, { text }); if (msgKey) await react(sock, msgKey, "❌"); };
   const ownerOnly = async () => { if (await isOwner(sock, sender)) return false; await fail("⛔ Command ini khusus owner."); return true; };
 
+
+  // public: ping — bisa dipakai semua orang (tanpa whitelist/owner)
+  if (command === "ping") {
+    try {
+      const ts = msg?.messageTimestamp ? Number(msg.messageTimestamp) * 1000 : null;
+      const raw = ts && ts > 0 ? Date.now() - ts : 0;
+      const ms = raw >= 0 && raw < 120000 ? raw : 0;
+      const text = buildPingText(ms);
+      if (msgKey) await react(sock, msgKey, "\u2705");
+      await sock.sendMessage(from, { text });
+    } catch (e) {
+      await sock.sendMessage(from, { text: `\u274c Ping gagal: ${e.message}` });
+      if (msgKey) await react(sock, msgKey, "\u274c");
+    }
+    return;
+  }
 
   if (OWNER_ANY_GROUP_COMMANDS.includes(command)) {
 
@@ -560,6 +578,42 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     const res = await swgc(sock, from, sender, args, config, isOwner);
     await sock.sendMessage(from, { text: res.text });
     if (msgKey) await react(sock, msgKey, res.success ? "✅" : "❌");
+    return;
+  }
+
+  if (command === "version") {
+    if (!(await isOwner(sock, sender))) { if (msgKey) await react(sock, msgKey, ""); return; }
+    const localVer = require("../package.json").version;
+    try {
+      const res = await checkUpdate();
+      await sock.sendMessage(from, { text: res.text });
+      if (msgKey) await react(sock, msgKey, res.success ? "\u2705" : "\uD83D\uDD04");
+    } catch(e) {
+      await sock.sendMessage(from, { text: `*Versi lokal:* v${localVer}\n\u274C Gagal cek remote: ${e.message}` });
+      if (msgKey) await react(sock, msgKey, "\u274C");
+    }
+    return;
+  }
+
+  if (command === "checkupdate") {
+    if (!(await isOwner(sock, sender))) { if (msgKey) await react(sock, msgKey, ""); return; }
+    const res = await checkUpdate();
+    await sock.sendMessage(from, { text: res.text });
+    if (msgKey) await react(sock, msgKey, res.success ? "✅" : "🔄");
+    return;
+  }
+
+  if (command === "update") {
+    if (!(await isOwner(sock, sender))) { if (msgKey) await react(sock, msgKey, ""); return; }
+    const { execSync } = require("child_process");
+    try {
+      const out = execSync("git pull && npm install", { encoding: "utf8", timeout: 60000 });
+      await sock.sendMessage(from, { text: "✅ Update selesai.\n" + out + "\n\nRestart bot untuk menerapkan." });
+      if (msgKey) await react(sock, msgKey, "✅");
+    } catch(e) {
+      await sock.sendMessage(from, { text: "❌ Gagal update:\n" + (e.stderr || e.message) });
+      if (msgKey) await react(sock, msgKey, "❌");
+    }
     return;
   }
 

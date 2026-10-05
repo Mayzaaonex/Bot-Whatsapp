@@ -1,11 +1,11 @@
 {
   "name": "Bot WhatsApp",
-  "version": "1.2.3",
+  "version": "1.2.6",
   "description": "BOT WHATSAPP MULTI DEVICE",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node index.js",
+    "start": "node main.js",
     "dev": "node main.js",
     "bump": "node scripts/bump-version.js patch",
     "bump:minor": "node scripts/bump-version.js minor",

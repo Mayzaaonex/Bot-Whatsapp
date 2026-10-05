@@ -9,6 +9,7 @@ const commands = [
   { command: "getprofile", description: "Ambil foto profil orang yang di-tag", usage: ".getprofile @tag", example: ".getprofile @Mayzaa" },
   { command: "getpp", description: "Alias .getprofile", usage: ".getpp @tag", example: ".getpp @Mayzaa" },
   { command: "getpfp", description: "Alias .getprofile", usage: ".getpfp @tag", example: ".getpfp @Mayzaa" },
+  { command: "ping", description: "Cek latency + info CPU/RAM/disk/platform", usage: ".ping", example: ".ping" },
 ];
 
 module.exports = {
@@ -25,7 +26,8 @@ module.exports = {
       "• *.rvo*\n" +
       "• *.shortlink <url>*\n" +
       "• *.ss <url>*\n" +
-      "• *.getprofile @tag*\n\n" +
+      "• *.getprofile @tag*\n" +
+      "• *.ping*\n\n" +
       `> Mayzaabot-v${version}`
     );
   },
