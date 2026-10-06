@@ -632,18 +632,22 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
   if (command === "update") {
     if (!(await isOwner(sock, sender))) { if (msgKey) await react(sock, msgKey, ""); return; }
     const { execSync } = require("child_process");
+    const delay = (ms) => new Promise(r => setTimeout(r, ms));
+    let sent = await sock.sendMessage(from, { text: "🔄 Mengupdate..." });
+    const edit = async (txt) => { try { await sock.sendMessage(from, { text: txt, edit: sent.key }); } catch { try { sent = await sock.sendMessage(from, { text: txt }); } catch {} } };
     try {
+      if (msgKey) await react(sock, msgKey, "⏳");
+      await edit("🔄 Mengupdate...\n⏳ Menarik update dari GitHub...");
       const out = execSync("git fetch origin && git reset --hard origin/main && npm install", { encoding: "utf8", timeout: 120000 });
-      if (msgKey) await react(sock, msgKey, "✅");
-      let sent = await sock.sendMessage(from, { text: "✅ Update selesai (force).\n" + out.slice(0, 3000) + "\n\n♻️ Restart dalam 5 detik..." });
+      await edit("✅ Update selesai (force).\n" + out.slice(0, 2500) + "\n\n♻️ Restart dalam 5 detik...");
       for (let i = 5; i >= 0; i--) {
-        await new Promise(r => setTimeout(r, 1000));
+        await delay(1000);
         const txt = i === 0 ? "♻️ Restarting..." : `♻️ Restart dalam ${i} detik...`;
-        try { await sock.sendMessage(from, { text: txt, edit: sent.key }); } catch { try { sent = await sock.sendMessage(from, { text: txt }); } catch {} }
+        await edit(txt);
       }
       process.exit(0);
     } catch(e) {
-      await sock.sendMessage(from, { text: "❌ Gagal update:\n" + (e.stderr || e.stdout || e.message).slice(0, 3500) });
+      await edit("❌ Gagal update:\n" + (e.stderr || e.stdout || e.message).slice(0, 3500));
       if (msgKey) await react(sock, msgKey, "❌");
     }
     return;
