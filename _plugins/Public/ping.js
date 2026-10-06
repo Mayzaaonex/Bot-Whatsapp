@@ -106,7 +106,7 @@ function buildPingText(latencyMs) {
   const latencyStr = latencyMs != null ? `${latencyMs} ms` : "N/A";
 
   return (
-    `🏓 *PING*\n\n` +
+    `🏓 *PONG*\n\n` +
     `• Latency: *${latencyStr}*\n` +
     `• Node: *${nodeVer}* | Bot: *v${botVer}*\n` +
     `• Platform: ${platform}\n` +

@@ -47,11 +47,13 @@ async function swgc(sock, from, sender, args, config, isOwner) {
   }
 
   let ids = [];
-
-  if (target !== "all") {
-    const gid = target.endsWith("@g.us") ? target : `${target}@g.us`;
+  const isAll = target.toLowerCase() === "all";
+  if (!isAll) {
+    let gid = target;
+    if (!gid) gid = from && String(from).endsWith("@g.us") ? String(from) : "";
+    else gid = gid.endsWith("@g.us") ? gid : `${gid}@g.us`;
     if (!/^\d+(-\d+)?@g\.us$/.test(gid)) {
-      return { success: false, text: "❌ ID grup tidak valid." };
+      return { success: false, text: "❌ ID grup tidak valid. Pakai: .swgc | <pesan> (di grup) atau .swgc <id>@g.us | <pesan>" };
     }
     try {
       const g = await sock.groupMetadata(gid);
