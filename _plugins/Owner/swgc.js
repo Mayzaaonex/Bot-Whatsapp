@@ -1,96 +1,29 @@
-const fs = require("fs");
-const path = require("path");
-
-const OPTIN_FILE = path.join(__dirname, "../../database/optin.json");
-
-function loadOptin() {
-  try {
-    if (fs.existsSync(OPTIN_FILE)) {
-      return JSON.parse(fs.readFileSync(OPTIN_FILE, "utf8"));
-    }
-  } catch {}
-  return { users: [] };
-}
-
-function saveOptin(data) {
-  fs.mkdirSync(path.dirname(OPTIN_FILE), { recursive: true });
-  fs.writeFileSync(OPTIN_FILE, JSON.stringify(data, null, 2));
-}
-
-function num(x) {
-  return String(x || "").replace(/\D/g, "");
-}
-
-function jid(n) {
-  return `${num(n)}@s.whatsapp.net`;
-}
-
-async function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 async function swgc(sock, from, sender, args, config, isOwner) {
-  if (!(await isOwner(sock, sender))) {
-    return { success: false, text: "❌ Khusus owner." };
-  }
-
+  if (!(await isOwner(sock, sender))) return { success: false, text: "❌ Khusus owner." };
   const raw = args.trim();
   const i = raw.indexOf("|");
-  if (i < 0) {
-    return { success: false, text: "Format: .swgc | <pesan> atau .swgc all | <pesan>" };
-  }
-
+  if (i < 0) return { success: false, text: "Format: .swgc | <pesan> atau .swgc all | <pesan>" };
   const target = raw.slice(0, i).trim();
   const msg = raw.slice(i + 1).trim();
-  if (!msg) {
-    return { success: false, text: "Pesan tidak boleh kosong." };
-  }
-
-  let ids = [];
+  if (!msg) return { success: false, text: "Pesan tidak boleh kosong." };
+  let gids = [];
   const isAll = target.toLowerCase() === "all";
-  if (!isAll) {
+  if (isAll) {
+    try { const gs = await sock.groupFetchAllParticipating(); gids = Object.keys(gs); } catch (e) { return { success: false, text: `❌ Gagal ambil semua grup: ${e.message}` }; }
+  } else {
     let gid = target;
     if (!gid) gid = from && String(from).endsWith("@g.us") ? String(from) : "";
     else gid = gid.endsWith("@g.us") ? gid : `${gid}@g.us`;
-    if (!/^\d+(-\d+)?@g\.us$/.test(gid)) {
-      return { success: false, text: "❌ ID grup tidak valid. Pakai: .swgc | <pesan> (di grup) atau .swgc <id>@g.us | <pesan>" };
-    }
-    try {
-      const g = await sock.groupMetadata(gid);
-      ids = g.participants.map((x) => num(x.id));
-    } catch (e) {
-      return { success: false, text: `❌ Gagal ambil member grup: ${e.message}` };
-    }
-  } else {
-    try {
-      const gs = await sock.groupFetchAllParticipating();
-      for (const g of Object.values(gs)) {
-        ids.push(...g.participants.map((x) => num(x.id)));
-      }
-    } catch (e) {
-      return { success: false, text: `❌ Gagal ambil semua grup: ${e.message}` };
-    }
+    if (!/^\d+(-\d+)?@g\.us$/.test(gid)) return { success: false, text: "❌ ID grup tidak valid. Pakai: .swgc | <pesan> (di grup) atau .swgc <id>@g.us | <pesan>" };
+    try { await sock.groupMetadata(gid); } catch (e) { return { success: false, text: `❌ Grup tidak ditemukan: ${e.message}` }; }
+    gids = [gid];
   }
-
-  const allowed = new Set(loadOptin().users.map(String));
-  const unique = [...new Set(ids)].filter((x) => allowed.has(x)).slice(0, 50);
-
-  let sent = 0,
-    failed = 0;
-  for (const n of unique) {
-    try {
-      await sock.sendMessage(jid(n), { text: msg });
-      sent++;
-    } catch {
-      failed++;
-    }
-    await sleep(500);
+  let sent = 0, failed = 0;
+  for (const gid of gids) {
+    try { await sock.sendMessage(gid, { text: msg }); sent++; } catch { failed++; }
+    if (gids.length > 1) await sleep(800);
   }
-
-  return {
-    success: true,
-    text: `╭━━〔 📤 SWGC 〕━━╮\n│ 👥 Terdeteksi : ${[...new Set(ids)].length}\n│ ✅ Opt-in : ${unique.length}\n│ 📤 Terkirim : ${sent}\n│ ⚠️ Gagal : ${failed}\n╰━━━━━━━━━━━━━━╯`,
-  };
+  return { success: true, text: `╭━━〔 📤 SWGC 〕━━╮\n│ 👥 Grup : ${gids.length}\n│ 📤 Terkirim : ${sent}\n│ ⚠️ Gagal : ${failed}\n╰━━━━━━━━━━━━━━╯` };
 }
-
 module.exports = { swgc };
