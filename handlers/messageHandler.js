@@ -26,6 +26,7 @@ const { addMetaAI } = require("../_plugins/Owner/addmeta");
 const { swgc } = require("../_plugins/Owner/swgc");
 const { checkUpdate } = require("../_plugins/Owner/checkupdate");
 const { buildPingText } = require("../_plugins/Public/ping");
+const { domaininfo, iplocations, qrgenerator, recordWeb, removebg, ssweb, topixel } = require("../_plugins/Tools");
 const { sendOwnerContact } = require("../_plugins/Public/owner");
 
 const UA =
