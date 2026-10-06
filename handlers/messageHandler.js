@@ -26,6 +26,7 @@ const { addMetaAI } = require("../_plugins/Owner/addmeta");
 const { swgc } = require("../_plugins/Owner/swgc");
 const { checkUpdate } = require("../_plugins/Owner/checkupdate");
 const { buildPingText } = require("../_plugins/Public/ping");
+const { sendOwnerContact } = require("../_plugins/Public/owner");
 
 const UA =
   "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36";
@@ -294,6 +295,12 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
 
   if (command === "owner") {
+    try { await sendOwnerContact(sock, from, msg); } catch (e) { await sock.sendMessage(from, { text: `❌ Gagal kirim kontak: ${e.message}` }); }
+    if (msgKey) await react(sock, msgKey, "✅");
+    return;
+  }
+
+  if (command === "ownermenu") {
     if (!(await isOwner(sock, sender))) {
       if (msgKey) await react(sock, msgKey, "");
       return;
@@ -302,7 +309,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     const mentionJid = toMentionJid(sender);
     const mentionTag = `@${mentionJid.split("@")[0]}`;
     const ownerCategory = findCategory("owner");
-    const menuText = ownerCategory?.directText || `${p}owner`;
+    const menuText = ownerCategory?.directText || `${p}ownermenu`;
 
     await sock.sendMessage(from, {
       text: `${getGreeting()} ${mentionTag}\n\n${menuText}`,
@@ -908,7 +915,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
     if (await ownerOnly()) return;
     if (!args) {
       await sock.sendMessage(from, {
-        text: `❌ Tulis nomornya.\nContoh: *${p}getjid 089531367146*`,
+        text: `❌ Tulis nomornya.\nContoh: *${p}getjid 081234567890*`,
       });
       if (msgKey) await react(sock, msgKey, "❌");
       return;

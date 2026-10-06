@@ -14,11 +14,12 @@ module.exports = {
   title: "Owner",
   description: "",
   get directText() {
-    const p = config.prefix;
-    const version = getVersion();
-    return (
-      "\uD83D\uDC51 *Owner Commands*\n\n" +
-      `\u2022 *${p}setprefix <simbol>*\n` +
+      const p = config.prefix;
+      const version = getVersion();
+      return (
+        "\uD83D\uDC51 *Owner Commands*\n\n" +
+        `• *${p}owner* (kontak owner)\n` +
+        `• *${p}ownermenu* (list command owner)\n` +
       `\u2022 *${p}setnick <nama>*\n` +
       `\u2022 *${p}useprofile*\n` +
       `\u2022 *${p}usebanner*\n` +
@@ -44,8 +45,9 @@ module.exports = {
     );
   },
   commands: [
-    { command: "owner", description: "Lihat menu owner (cuma bisa dipake owner)", usage: ".owner", example: ".owner" },
-    { command: "setprefix", description: "Ganti prefix bot (owner only)", usage: ".setprefix <simbol>", example: ".setprefix !" },
+    { command: "owner", description: "Kirim kontak owner", usage: ".owner", example: ".owner" },
+        { command: "ownermenu", description: "Lihat daftar command owner", usage: ".ownermenu", example: ".ownermenu" },
+        { command: "setprefix", description: "Ganti prefix bot (owner only)", usage: ".setprefix <simbol>", example: ".setprefix !" },
     { command: "setnick", description: "Ganti nama/nickname bot di WA (owner only)", usage: ".setnick <nama>", example: ".setnick Bot Keren" },
     { command: "useprofile", description: "Ganti foto profil bot \u2014 kirim foto + caption perintah (owner only)", usage: ".useprofile", example: ".useprofile" },
     { command: "usebanner", description: "Ganti banner WA Business \u2014 kirim foto + caption perintah (owner only)", usage: ".usebanner", example: ".usebanner" },
@@ -58,7 +60,7 @@ module.exports = {
     { command: "outgc", description: "Keluar grup via nomor urut listgc lalu hapus whitelist (owner only)", usage: ".outgc <nomor listgc / idgc>", example: ".outgc 3" },
     { command: "joingc", description: "Masuk grup lewat link lalu otomatis whitelist (owner only)", usage: ".joingc <link grup>", example: ".joingc https://chat.whatsapp.com/IjAE2P1KcD4Hya3mEBCTgf" },
     { command: "listgc", description: "Lihat semua grup yang diikuti bot + nama, ID, total member (owner only)", usage: ".listgc", example: ".listgc" },
-    { command: "getjid", description: "Encode nomor HP jadi JID WhatsApp (owner only)", usage: ".getjid <nomor>", example: ".getjid 089531367146" },
+    { command: "getjid", description: "Encode nomor HP jadi JID WhatsApp (owner only)", usage: ".getjid <nomor>", example: ".getjid 081234567890" },
     { command: "getnumber", description: "Decode JID/@lid jadi nomor HP asli (owner only)", usage: ".getnumber <jid>", example: ".getnumber 129111632691455@lid" },
     { command: "swgc", description: "Broadcast pesan ke member grup yang opt-in (owner only)", usage: ".swgc | <pesan> atau .swgc all | <pesan>", example: ".swgc all | Halo semua" },
     { command: "version", description: "Cek versi bot lokal (owner only)", usage: ".version", example: ".version" },
