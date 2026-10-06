@@ -7,3 +7,4 @@ npm-debug.log*
 database/bot_config.json
 temp/
 *.tmp
+AGENTS.md
