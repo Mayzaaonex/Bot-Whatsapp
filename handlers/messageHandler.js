@@ -1278,7 +1278,7 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
 
 
-  if (["removebg", "tosketch", "hitamkan", "image2prompt", "img2img", "topixel", "enhancer"].includes(command)) {
+  if (["tosketch", "hitamkan", "image2prompt", "img2img"].includes(command)) {
 
     const quotedMsg = getQuoted(msg);
     const directImg = msg?.message?.imageMessage;
@@ -1331,15 +1331,10 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
       let result;
       if (command === "img2img") {
         result = await aiImage.img2img(imageBuffer, args);
-      } else if (command === "topixel") {
-        const level = args && !isNaN(args.trim()) ? parseInt(args.trim(), 10) : 30;
-        result = await aiImage.topixel(imageBuffer, level);
       } else {
         const cmdMap = {
-          removebg:    aiImage.removeBg,
           tosketch:    aiImage.toSketch,
           hitamkan:    aiImage.hitamkan,
-          enhancer:    aiImage.enhancer,
           image2prompt: aiImage.image2prompt,
         };
         result = await cmdMap[command](imageBuffer);
@@ -1347,12 +1342,9 @@ async function handleMessage(sock, from, sender, rawText, quotedInfo, pushName, 
 
       if (result.type === "image") {
         const captions = {
-          removebg:    "✅ Background berhasil dihapus!",
           tosketch:    "✅ Foto berhasil dijadiin sketsa!",
           hitamkan:    "✅ Foto berhasil dijadiin hitam putih!",
           img2img:     "✅ Foto berhasil diedit sesuai prompt!",
-          topixel:     "✅ Foto berhasil dijadiin pixel art!",
-          enhancer:    "✅ Foto berhasil di-enhance!",
         };
         let caption = captions[command] || "✅ Done!";
         if (result.url) caption += `\n\n🔗 ${result.url}`;

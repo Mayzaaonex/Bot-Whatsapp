@@ -4,7 +4,7 @@ Bot WhatsApp berbasis Node.js + [`@itsliaaa/baileys`](https://github.com/itsliaa
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Baileys](https://img.shields.io/badge/Baileys-community%20fork-blue)](https://github.com/itsliaaa/baileys)
-[![Version](https://img.shields.io/badge/version-1.2.20-orange)](./package.json)
+[![Version](https://img.shields.io/badge/version-1.2.21-orange)](./package.json)
 [![License](https://img.shields.io/badge/license-ISC-lightgrey)](#)
 
 ## Daftar Isi
@@ -172,6 +172,7 @@ Project ini memakai **`@itsliaaa/baileys`** — fork komunitas (bukan resmi Whis
 
 | Versi | Tanggal | Catatan |
 |-------|---------|---------|
+| 1.2.21 | 2026-10-06 | menu AI Image sync plugins (hanya tosketch, hitamkan, image2prompt, img2img) |
 | 1.2.20 | 2026-10-06 | .update progress edit pesan + countdown restart 5→0 |
 | 1.2.19 | 2026-10-06 | ignore AGENTS.md di git |
 | 1.2.18 | 2026-10-06 | sensor nomor (README/menu/handler contoh -> 081234567890, asli hanya di config.json) |
